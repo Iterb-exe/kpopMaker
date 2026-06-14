@@ -29,7 +29,7 @@ app.get('/api/contestants', (req, res) => {
                     let descriptionText = "";
 
                     files.forEach(file => {
-                        if (file.endsWith('.jpg') || file.endsWith('.png')) {
+                        if (file.endsWith('.jpg') || file.endsWith('.png') || file.endsWith('.gif')) {
                             imagesList.push(`http://localhost:3000/images/${group}/${idol}/${file}`);
                         } 
                         else if (file === 'opis.txt') {
@@ -42,8 +42,8 @@ app.get('/api/contestants', (req, res) => {
                             id: idCounter++,
                             group: group.toUpperCase(),
                             name: idol.charAt(0).toUpperCase() + idol.slice(1),
-                            images: imagesList,           // <-- Nasza tablica ze zdjęciami
-                            description: descriptionText.trim() // <-- Tekst z pliku opis.txt (trim usuwa puste spacje z początku/końca)
+                            images: imagesList,     
+                            description: descriptionText.trim() 
                         });
                     }
                     else{
