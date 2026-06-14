@@ -1,0 +1,8 @@
+backend/node_modules/
+backend/idols/**/*.jpg
+backend/idols/**/*.png
+kpopMaker/node_modules/
+.vscode/
+.env
+.DS_Store
+kpopMaker/dist/
