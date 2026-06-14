@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted,computed } from 'vue'
 import ProfileCard from './components/ProfileCard.vue'
 
 const contestants = ref([])
@@ -11,15 +11,49 @@ const isAnimating = ref(false)
 const loserIndex = ref(null)
 const winnerIndex = ref(null)
 const previewIdol = ref(null)
+const initialGroupCounts = ref({})
 const goHome = () => { window.location.href = '/' }
-const shuffle = (array) => [...array].sort(() => Math.random() - 0.5)
+const shuffle = (array) => {
+  const newArray = [...array]
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]]
+  }
+  
+  return newArray
+}
 const updateStageName = (count) => {
   if (count === 2) stageName.value = 'Finał'
   else if (count === 4) stageName.value = 'Półfinał'
   else if (count === 8) stageName.value = 'Ćwierćfinał'
   else stageName.value = `1/${count / 2}`
 }
+const groupStats = computed(() => {
+  if (!initialGroupCounts.value || Object.keys(initialGroupCounts.value).length === 0) return []
+  const currentCounts = {}
+  contestants.value.forEach(idol => {
+    if (idol.group) {
+      currentCounts[idol.group] = (currentCounts[idol.group] || 0) + 1
+    }
+  })
+  const stats = []
+  for (const [group, total] of Object.entries(initialGroupCounts.value)) {
+    const current = currentCounts[group] || 0
+    if (current > 0) {
+      const percentage = Math.round((current / total) * 100)
+      stats.push({ group, current, total, percentage })
+    }
+  }
+  return stats
+})
 const initTournament = (data) => {
+  const counts = {}
+  data.forEach(idol => {
+    if (idol.group) {
+      counts[idol.group] = (counts[idol.group] || 0) + 1
+    }
+  })
+  initialGroupCounts.value = counts
   const shuffled = shuffle(data)
   const N = shuffled.length
   if (N < 2) return
@@ -122,11 +156,40 @@ const selectWinner = () => {
     </div>
 
     <template v-else>
-      <div v-if="stageName" class="absolute top-6 left-8 bg-gray-800 border border-gray-700 px-6 py-2 rounded-full shadow-lg z-50">
-        <span class="text-emerald-400 font-bold text-xl uppercase tracking-widest">{{ stageName }}</span>
-        <span v-if="stageName !== 'Zwycięzca!'" class="text-gray-400 ml-2 text-sm font-medium">
-          (Mecz {{ (currentIndex / 2) + 1 }} / {{ contestants.length / 2 }})
-        </span>
+      <div v-if="stageName" class="absolute top-6 left-8 z-50 flex flex-col gap-4 max-w-xs w-64">
+        
+        <div class="bg-gray-800 border border-gray-700 px-6 py-2 rounded-full shadow-lg w-max">
+          <span class="text-emerald-400 font-bold text-xl uppercase tracking-widest">{{ stageName }}</span>
+          <span v-if="stageName !== 'Zwycięzca!'" class="text-gray-400 ml-2 text-sm font-medium">
+            (Mecz {{ (currentIndex / 2) + 1 }} / {{ contestants.length / 2 }})
+          </span>
+        </div>
+
+        <div 
+          v-if="stageName !== 'Zwycięzca!' && groupStats.length > 0" 
+          class="bg-gray-800/95 border border-gray-700 p-4 rounded-xl shadow-xl backdrop-blur-sm  overflow-y-auto"
+        >
+          
+          <ul class="flex flex-col gap-3">
+            <li v-for="stat in groupStats" :key="stat.group" class="flex flex-col">
+              
+              <div class="flex justify-between items-end mb-1">
+                <span class="text-gray-200 font-semibold text-sm truncate pr-2">{{ stat.group }}</span>
+                <span class="text-xs text-gray-400 font-mono whitespace-nowrap">
+                  {{ stat.current }}/{{ stat.total }} ({{ stat.percentage }}%)
+                </span>
+              </div>
+              
+              <div class="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                <div 
+                  class="bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-out" 
+                  :style="{ width: stat.percentage + '%' }"
+                ></div>
+              </div>
+              
+            </li>
+          </ul>
+        </div>
       </div>
 
       <div v-if="contestants.length > 1" class="flex flex-col items-center h-full pt-12">

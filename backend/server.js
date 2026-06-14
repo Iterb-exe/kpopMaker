@@ -29,13 +29,14 @@ app.get('/api/contestants', (req, res) => {
                     let descriptionText = "";
 
                     files.forEach(file => {
-                        if (file.endsWith('.jpg') || file.endsWith('.png') || file.endsWith('.gif')) {
-                            imagesList.push(`http://localhost:3000/images/${group}/${idol}/${file}`);
-                        } 
-                        else if (file === 'opis.txt') {
+                        if (file === 'opis.txt') {
                             const descPath = path.join(idolPath, file);
                             descriptionText = fs.readFileSync(descPath, 'utf-8');
                         }
+                        else {
+                            imagesList.push(`http://localhost:3000/images/${group}/${idol}/${file}`);
+                        } 
+                        
                     });
                     if (imagesList.length > 0) {
                         contestants.push({
