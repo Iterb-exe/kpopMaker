@@ -4,6 +4,7 @@ import ProfileCard from './components/ProfileCard.vue'
 
 const contestants = ref([])
 const winners = ref([])
+const points = ref([])
 const currentIndex = ref(0)
 const current = ref(null)
 const stageName = ref('')
@@ -72,7 +73,7 @@ const initTournament = (data) => {
 
 const fetchContestants = async () => {
   try {
-    const response = await fetch('http://localhost:3000/api/contestants')
+    const response = await fetch('/api/contestants')
     const data = await response.json()
     const path = decodeURI(window.location.pathname.substring(1)).toLowerCase()
     if (path && path !== 'index.html') {
@@ -82,6 +83,15 @@ const fetchContestants = async () => {
         return
       }
     }
+    setTimeout(() => {
+      data.forEach(idol => {
+        if (idol.images && idol.images.length > 0) {
+          const img = new Image()
+          const cleanPath = idol.images[0].startsWith('/') ? idol.images[0] : `/${idol.images[0]}`
+          img.src = `/images${cleanPath}`
+        }
+      })
+    }, 1000)
     initTournament(data)
   } catch (error) {
     console.error(error)
@@ -91,7 +101,12 @@ const fetchContestants = async () => {
 onMounted(() => {
   fetchContestants()
 })
-
+const getRank = (index) => {
+  if(index == 7 ) return '1'
+  if (index === 6) return '2'
+  if (index >= 4) return '3-4'
+  return '5-8'
+}
 const closerLook = (clicked) => {
   console.log(clicked)
   current.value = clicked
@@ -111,6 +126,12 @@ const selectWinner = () => {
   }
   setTimeout(() => {
     winners.value.push(current.value)
+    if (contestants.value.length<9){
+      points.value.push(contestants.value[loserIndex.value])
+      if(contestants.value.length==2){
+        points.value.push(contestants.value[winnerIndex.value])
+      }
+    }
     current.value = null
     currentIndex.value += 2 
 
@@ -139,10 +160,9 @@ const selectWinner = () => {
   <div class="relative h-screen flex flex-col p-6 box-border bg-gray-900">
     
     <div v-if="previewIdol" class="flex flex-col items-center justify-center h-full">
-      <div class="absolute top-6 left-8 bg-gray-800 border border-gray-700 px-6 py-2 rounded-full shadow-lg z-50">
+      <div class="absolute top-6 left-8">
         <span class="text-amber-400 font-bold text-xl uppercase tracking-widest">Tryb Debugowania: {{ previewIdol.name }}</span>
       </div>
-
       <div class="w-[520px] max-w-md h-[720px]">
         <ProfileCard :idol="previewIdol" class="w-full h-full cursor-default hover:scale-100" />
       </div>
@@ -190,33 +210,55 @@ const selectWinner = () => {
             </li>
           </ul>
         </div>
+        <div v-else
+          class="bg-gray-800/95 border border-gray-700 p-4 rounded-xl shadow-xl backdrop-blur-sm  overflow-y-auto">
+          <ul class="flex flex-col gap-3">
+            <li v-for="cont,index in points" :key="cont.name" class="flex flex-col">
+              <div class="flex justify-between items-end mb-1">
+                <span class="text-emerald-500 mr-2">#{{ getRank(index) }}</span> 
+                <span class="text-gray-200 font-semibold text-sm truncate pr-2">{{ cont.name }}</span>
+              </div>
+            </li>
+          </ul>
       </div>
-
+      </div>
+      <div v-else
+          class="bg-gray-800/95 border border-gray-700 p-4 rounded-xl shadow-xl backdrop-blur-sm  overflow-y-auto">
+          <ul class="flex flex-col gap-3">
+            <li class="flex flex-col">
+              Winner
+            </li>
+          </ul>
+      </div>
       <div v-if="contestants.length > 1" class="flex flex-col items-center h-full pt-12">
         
         <div class="flex-1 w-full max-w-6xl flex gap-8 items-center justify-center min-h-0">
           
           <ProfileCard 
+            :key="contestants[currentIndex].id"
             :idol="contestants[currentIndex]" 
             @click="closerLook(contestants[currentIndex])"
             class="flex-1 transition-all duration-500 ease-out"
             :class="{
               'opacity-0 scale-75 pointer-events-none blur-sm': loserIndex === currentIndex,
               'scale-105 ring-4 ring-emerald-500 shadow-[0_0_40px_rgba(16,185,129,0.5)] z-20': winnerIndex === currentIndex,
-              'opacity-100': loserIndex !== currentIndex
+              'opacity-100': loserIndex !== currentIndex,
+              'ring-4 ring-emerald-300 scale-[1.02] shadow-[0_0_30px_rgba(251,191,36,0.4)] z-10': current === contestants[currentIndex] && !isAnimating
             }"
           />
           
           <div class="text-3xl font-black italic text-gray-400 shrink-0 mx-4 transition-opacity duration-500" :class="isAnimating ? 'opacity-0' : 'opacity-100'">VS</div>
           
-          <ProfileCard 
+          <ProfileCard
+            :key="contestants[currentIndex + 1].id"
             :idol="contestants[currentIndex + 1]" 
             @click="closerLook(contestants[currentIndex + 1])"
             class="flex-1 transition-all duration-500 ease-out"
             :class="{
               'opacity-0 scale-75 pointer-events-none blur-sm': loserIndex === currentIndex + 1,
               'scale-105 ring-4 ring-emerald-500 shadow-[0_0_40px_rgba(16,185,129,0.5)] z-20': winnerIndex === currentIndex + 1,
-              'opacity-100': loserIndex !== currentIndex + 1
+              'opacity-100': loserIndex !== currentIndex + 1,
+              'ring-4 ring-emerald-300 scale-[1.02] shadow-[0_0_30px_rgba(251,191,36,0.4)] z-10': current === contestants[currentIndex + 1] && !isAnimating
             }"
           />
         </div>
@@ -237,6 +279,7 @@ const selectWinner = () => {
         <div class="w-full max-w-md h-[600px]">
           <ProfileCard :idol="contestants[0]" class="w-full h-full shadow-[0_0_50px_rgba(16,185,129,0.5)] border-4 border-emerald-500 cursor-default hover:scale-100" />
         </div>
+        
       </div>
       
       <div v-else class="h-full flex items-center justify-center text-2xl text-gray-500 font-bold animate-pulse">

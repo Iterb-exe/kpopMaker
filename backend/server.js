@@ -34,7 +34,7 @@ app.get('/api/contestants', (req, res) => {
                             descriptionText = fs.readFileSync(descPath, 'utf-8');
                         }
                         else {
-                            imagesList.push(`http://localhost:3000/images/${group}/${idol}/${file}`);
+                            imagesList.push(`${group}/${idol}/${file}`);
                         } 
                         
                     });
@@ -52,8 +52,8 @@ app.get('/api/contestants', (req, res) => {
                             id: idCounter++,
                             group: group.toUpperCase(),
                             name: idol.charAt(0).toUpperCase() + idol.slice(1),
-                            images: null,           // <-- Nasza tablica ze zdjęciami
-                            description: null // <-- Tekst z pliku opis.txt (trim usuwa puste spacje z początku/końca)
+                            images: null,
+                            description: null
                         });
                     }
                 }

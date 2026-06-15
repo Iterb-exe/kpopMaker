@@ -1,5 +1,5 @@
 <script setup>
-import { ref,watch } from 'vue'
+import { ref, watch } from 'vue'
 
 const props = defineProps({
   idol: {
@@ -7,10 +7,25 @@ const props = defineProps({
     required: true
   }
 })
-watch(() => props.idol, () => {
-  currentIndex.value = 0
-})
 const currentIndex = ref(0)
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return ''
+  const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`
+  return `/images${cleanPath}`
+}
+const preloadImages = (images) => {
+  if (!images || images.length === 0) return
+  images.forEach(imagePath => {
+    const img = new Image()
+    img.src = getImageUrl(imagePath)
+  })
+}
+watch(() => props.idol, (newIdol) => {
+  currentIndex.value = 0
+  if (newIdol && newIdol.images) {
+    preloadImages(newIdol.images)
+  }
+}, { immediate: true })
 const nextImage = () => {
   if (props.idol.images && props.idol.images.length > 0) {
     currentIndex.value = (currentIndex.value + 1) % props.idol.images.length
@@ -26,9 +41,10 @@ const prevImage = () => {
 
 <template>
   <div class="relative w-full h-full rounded-2xl overflow-hidden shadow-xl cursor-pointer transform transition duration-300 hover:scale-[1.02] hover:shadow-2xl bg-gray-800"> 
+    
     <img 
       v-if="idol.images && idol.images.length > 0"
-      :src="idol.images[currentIndex]" 
+      :src="getImageUrl(idol.images[currentIndex])" 
       :alt="idol.name" 
       class="w-full h-full object-cover select-none"
     />
