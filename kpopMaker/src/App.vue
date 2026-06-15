@@ -1,4 +1,5 @@
 <script setup>
+import html2canvas from 'html2canvas'
 import { ref, onMounted,computed } from 'vue'
 import ProfileCard from './components/ProfileCard.vue'
 
@@ -87,8 +88,13 @@ const fetchContestants = async () => {
       data.forEach(idol => {
         if (idol.images && idol.images.length > 0) {
           const img = new Image()
-          const cleanPath = idol.images[0].startsWith('/') ? idol.images[0] : `/${idol.images[0]}`
-          img.src = `/images${cleanPath}`
+          const pathParts = idol.images[0].replaceAll('\\', '/').split('/')
+          let fileName = pathParts[pathParts.length - 1]
+          
+          fileName = fileName.replaceAll(' ', '_')
+          
+          const cloudName = "dur68snjw"
+          img.src = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/${fileName}`
         }
       })
     }, 1000)
@@ -153,6 +159,25 @@ const selectWinner = () => {
     isAnimating.value = false
 
   }, 500) 
+}
+const summaryScreen = ref(null)
+
+const downloadScreenshot = async () => {
+  if (!summaryScreen.value) return
+  
+  try {
+    const canvas = await html2canvas(summaryScreen.value, {
+      useCORS: true,
+      backgroundColor: '#111827',
+      scale: 2
+    })
+    const link = document.createElement('a')
+    link.download = `ranking-turnieju-${contestants.value[0].name}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+  } catch (error) {
+    console.error("Nie udało się zrobić screena:", error)
+  }
 }
 </script>
 

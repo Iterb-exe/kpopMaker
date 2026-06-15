@@ -10,6 +10,7 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "html2canvas": "^1.4.1",
     "vue": "^3.5.32"
   },
   "devDependencies": {

@@ -5,13 +5,20 @@ import path from 'path';
 
 const app = express();
 app.use(cors());
-app.use('/images', express.static('idols'));
+const DB_FILE = './baza.json';
 
 app.get('/api/contestants', (req, res) => {
+    if (fs.existsSync(DB_FILE)) {
+        const data = fs.readFileSync(DB_FILE, 'utf-8');
+        return res.json(JSON.parse(data));
+    }
     const idolsDir = './idols';
+    if (!fs.existsSync(idolsDir)) {
+        return res.status(500).json({ error: "Brak folderu idols i brak pliku baza.json!" });
+    }
+
     const contestants = [];
     let idCounter = 1;
-
     const groups = fs.readdirSync(idolsDir);
 
     groups.forEach(group => {
@@ -32,34 +39,24 @@ app.get('/api/contestants', (req, res) => {
                         if (file === 'opis.txt') {
                             const descPath = path.join(idolPath, file);
                             descriptionText = fs.readFileSync(descPath, 'utf-8');
-                        }
-                        else {
+                        } else {
                             imagesList.push(`${group}/${idol}/${file}`);
                         } 
-                        
                     });
-                    if (imagesList.length > 0) {
-                        contestants.push({
-                            id: idCounter++,
-                            group: group.toUpperCase(),
-                            name: idol.charAt(0).toUpperCase() + idol.slice(1),
-                            images: imagesList,     
-                            description: descriptionText.trim() 
-                        });
-                    }
-                    else{
-                        contestants.push({
-                            id: idCounter++,
-                            group: group.toUpperCase(),
-                            name: idol.charAt(0).toUpperCase() + idol.slice(1),
-                            images: null,
-                            description: null
-                        });
-                    }
+
+                    contestants.push({
+                        id: idCounter++,
+                        group: group.toUpperCase(),
+                        name: idol.charAt(0).toUpperCase() + idol.slice(1),
+                        images: imagesList.length > 0 ? imagesList : null,     
+                        description: descriptionText.trim() || null
+                    });
                 }
             });
         }
     });
+    fs.writeFileSync(DB_FILE, JSON.stringify(contestants, null, 4), 'utf-8');
+    console.log("Sukces! Wygenerowano nowy plik baza.json ze struktur folderów.");
 
     res.json(contestants);
 });

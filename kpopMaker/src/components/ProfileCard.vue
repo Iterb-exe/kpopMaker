@@ -10,8 +10,13 @@ const props = defineProps({
 const currentIndex = ref(0)
 const getImageUrl = (imagePath) => {
   if (!imagePath) return ''
-  const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`
-  return `/images${cleanPath}`
+  if (imagePath.startsWith('http')) return imagePath
+  const pathParts = imagePath.replaceAll('\\', '/').split('/')
+  let fileName = pathParts[pathParts.length - 1]
+  fileName = fileName.replaceAll(' ', '_')
+
+  const cloudName = "dur68snjw" 
+  return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/${fileName}`
 }
 const preloadImages = (images) => {
   if (!images || images.length === 0) return
