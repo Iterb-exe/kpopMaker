@@ -16,7 +16,7 @@ const getImageUrl = (imagePath) => {
   fileName = fileName.replaceAll(' ', '_')
 
   const cloudName = "dur68snjw" 
-  return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/${fileName}`
+  return `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`
 }
 const preloadImages = (images) => {
   if (!images || images.length === 0) return
@@ -54,7 +54,7 @@ defineExpose({
       v-if="idol.images && idol.images.length > 0"
       :src="getImageUrl(idol.images[currentIndex])" 
       :alt="idol.name" 
-      class="w-full h-full object-cover select-none"
+      class="w-full h-full object-cover object-[center_10%] select-none"
     />
     
     <div v-else class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">

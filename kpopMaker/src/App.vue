@@ -142,7 +142,7 @@ const fetchContestants = async () => {
           const pathParts = idol.images[0].replaceAll('\\', '/').split('/')
           let fileName = pathParts[pathParts.length - 1].replaceAll(' ', '_')
           const cloudName = "dur68snjw"
-          img.src = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/${fileName}`
+          img.src = `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`
         }
       })
     }, 1000)
@@ -231,23 +231,37 @@ const handleGoHome = () => {
     </div>
 
     <template v-else>
-      <TournamentSidebar 
-        v-if="stageName !== 'Zwycięzca!'"
-        :stage-name="stageName"
-        :current-index="currentIndex"
-        :contestants="contestants"
-        :group-stats="groupStats"
-        :points="points"
-      />
+      <div class="hidden min-[1710px]:block">
+        <TournamentSidebar 
+          v-if="stageName !== 'Zwycięzca!'"
+          :stage-name="stageName"
+          :current-index="currentIndex"
+          :contestants="contestants"
+          :group-stats="groupStats"
+          :points="points"
+        />
+      </div>
 
-      <div v-if="contestants.length > 1" class="flex flex-col items-center h-full pt-12">
-        <div class="flex-1 w-full max-w-6xl flex gap-8 items-center justify-center min-h-0">
+      <div v-if="stageName && stageName !== 'Zwycięzca!'" class="min-[1710px]:hidden w-full flex justify-center pt-2 md:pt-6 shrink-0 z-10">
+        <div class="bg-gray-800 border border-gray-700 px-6 py-2 rounded-full shadow-lg flex items-center gap-3">
+          <span class="text-emerald-400 font-bold text-lg uppercase tracking-widest">{{ stageName }}</span>
+          <div class="h-4 w-px bg-gray-600"></div>
+          <span class="text-gray-400 text-sm font-medium whitespace-nowrap">
+            {{ (currentIndex / 2) + 1 }} / {{ contestants.length / 2 }}
+          </span>
+        </div>
+      </div>
+
+      <div v-if="contestants.length > 1" class="flex flex-col items-center h-full pt-4 lg:pt-12 pb-4 min-h-0 w-full px-4 lg:px-0">
+        
+        <div class="flex-1 w-full max-w-7xl flex flex-col lg:flex-row gap-4 lg:gap-8 items-center justify-center min-h-0">
+          
           <ProfileCard 
             :key="contestants[currentIndex].id"
             ref="leftCardRef"
             :idol="contestants[currentIndex]" 
             @click="closerLook(contestants[currentIndex])"
-            class="flex-1 transition-all duration-500 ease-out"
+            class="flex-1 w-full min-h-0 aspect-[4/5] lg:aspect-[3/4] max-w-[320px] sm:max-w-[400px] lg:max-w-md xl:max-w-lg transition-all duration-500 ease-out"
             :class="{
               'opacity-0 scale-75 pointer-events-none blur-sm': loserIndex === currentIndex,
               'scale-105 ring-4 ring-emerald-500 shadow-[0_0_40px_rgba(16,185,129,0.5)] z-20': winnerIndex === currentIndex,
@@ -256,14 +270,14 @@ const handleGoHome = () => {
             }"
           />
           
-          <div class="text-3xl font-black italic text-gray-400 shrink-0 mx-4 transition-opacity duration-500" :class="isAnimating ? 'opacity-0' : 'opacity-100'">VS</div>
+          <div class="text-2xl lg:text-4xl font-black italic text-gray-400 shrink-0 transition-opacity duration-500" :class="isAnimating ? 'opacity-0' : 'opacity-100'">VS</div>
           
           <ProfileCard
             :key="contestants[currentIndex + 1].id"
             ref="rightCardRef"
             :idol="contestants[currentIndex + 1]" 
             @click="closerLook(contestants[currentIndex + 1])"
-            class="flex-1 transition-all duration-500 ease-out"
+            class="flex-1 w-full min-h-0 aspect-[4/5] lg:aspect-[3/4] max-w-[320px] sm:max-w-[400px] lg:max-w-md xl:max-w-lg transition-all duration-500 ease-out"
             :class="{
               'opacity-0 scale-75 pointer-events-none blur-sm': loserIndex === currentIndex + 1,
               'scale-105 ring-4 ring-emerald-500 shadow-[0_0_40px_rgba(16,185,129,0.5)] z-20': winnerIndex === currentIndex + 1,
@@ -276,11 +290,12 @@ const handleGoHome = () => {
         <button 
           :disabled="!current || isAnimating"
           @click="selectWinner"
-          class="mt-8 shrink-0 px-12 py-4 text-white font-extrabold text-xl uppercase tracking-wider rounded-full shadow-lg transform transition-all duration-200"
+          class="mt-6 md:mt-8 shrink-0 px-8 md:px-12 py-3 md:py-4 text-white font-extrabold text-base md:text-xl uppercase tracking-wider rounded-full shadow-lg transform transition-all duration-200"
           :class="current && !isAnimating ? 'bg-emerald-600 hover:bg-emerald-500 hover:shadow-xl hover:-translate-y-1 active:scale-95' : 'bg-gray-700 opacity-50 cursor-not-allowed'"
         >
           Wybierz <span v-if="current">{{ current.name }}</span>
         </button>
+        
       </div>
 
       <div v-else-if="contestants.length === 1 && stageName === 'Zwycięzca!'" class="flex flex-col items-center justify-center h-full w-full overflow-hidden">
