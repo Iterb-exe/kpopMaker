@@ -1,7 +1,8 @@
 <script setup>
-import html2canvas from 'html2canvas'
-import { ref, onMounted,computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import ProfileCard from './components/ProfileCard.vue'
+import TournamentSidebar from './components/TournamentSidebar.vue'
+import WinnerSummary from './components/WinnerSummary.vue'
 
 const contestants = ref([])
 const winners = ref([])
@@ -14,22 +15,63 @@ const loserIndex = ref(null)
 const winnerIndex = ref(null)
 const previewIdol = ref(null)
 const initialGroupCounts = ref({})
+
+const leftCardRef = ref(null)
+const rightCardRef = ref(null)
+const winnerSummaryRef = ref(null)
+
 const goHome = () => { window.location.href = '/' }
+
 const shuffle = (array) => {
   const newArray = [...array]
   for (let i = newArray.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [newArray[i], newArray[j]] = [newArray[j], newArray[i]]
   }
-  
   return newArray
 }
+
+const handleKeydown = (event) => {
+  if (event.code === 'Space' || event.key === ' ') {
+    event.preventDefault() 
+    
+    if (stageName.value === 'Zwycięzca!') {
+      winnerSummaryRef.value?.cycleWinnerImage()
+      return
+    }
+
+    if (isAnimating.value) return
+
+    if (current.value === contestants.value[currentIndex.value]) {
+      leftCardRef.value?.nextImage()
+    } else if (current.value === contestants.value[currentIndex.value + 1]) {
+      rightCardRef.value?.nextImage()
+    }
+    return
+  }
+
+  if (stageName.value === 'Zwycięzca!' || isAnimating.value) return
+
+  if (event.key === 'ArrowLeft') {
+    current.value = contestants.value[currentIndex.value]
+  } 
+  else if (event.key === 'ArrowRight') {
+    current.value = contestants.value[currentIndex.value + 1]
+  } 
+  else if (event.key === 'Enter') {
+    if (current.value) {
+      selectWinner()
+    }
+  }
+}
+
 const updateStageName = (count) => {
   if (count === 2) stageName.value = 'Finał'
   else if (count === 4) stageName.value = 'Półfinał'
   else if (count === 8) stageName.value = 'Ćwierćfinał'
   else stageName.value = `1/${count / 2}`
 }
+
 const groupStats = computed(() => {
   if (!initialGroupCounts.value || Object.keys(initialGroupCounts.value).length === 0) return []
   const currentCounts = {}
@@ -48,6 +90,7 @@ const groupStats = computed(() => {
   }
   return stats
 })
+
 const initTournament = (data) => {
   const counts = {}
   data.forEach(idol => {
@@ -77,6 +120,14 @@ const fetchContestants = async () => {
     const response = await fetch('/api/contestants')
     const data = await response.json()
     const path = decodeURI(window.location.pathname.substring(1)).toLowerCase()
+    if (path === 'winner') {
+      const shuffled = shuffle(data)
+      const debugWinner = shuffled[0]
+      contestants.value = [debugWinner]
+      points.value = [...shuffled.slice(1, 8), debugWinner]
+      stageName.value = 'Zwycięzca!'
+      return
+    }
     if (path && path !== 'index.html') {
       const found = data.find(idol => idol.name.toLowerCase() === path)
       if (found) {
@@ -89,10 +140,7 @@ const fetchContestants = async () => {
         if (idol.images && idol.images.length > 0) {
           const img = new Image()
           const pathParts = idol.images[0].replaceAll('\\', '/').split('/')
-          let fileName = pathParts[pathParts.length - 1]
-          
-          fileName = fileName.replaceAll(' ', '_')
-          
+          let fileName = pathParts[pathParts.length - 1].replaceAll(' ', '_')
           const cloudName = "dur68snjw"
           img.src = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/${fileName}`
         }
@@ -106,15 +154,14 @@ const fetchContestants = async () => {
 
 onMounted(() => {
   fetchContestants()
+  window.addEventListener('keydown', handleKeydown)
 })
-const getRank = (index) => {
-  if(index == 7 ) return '1'
-  if (index === 6) return '2'
-  if (index >= 4) return '3-4'
-  return '5-8'
-}
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
+
 const closerLook = (clicked) => {
-  console.log(clicked)
   current.value = clicked
 }
 
@@ -132,9 +179,9 @@ const selectWinner = () => {
   }
   setTimeout(() => {
     winners.value.push(current.value)
-    if (contestants.value.length<9){
+    if (contestants.value.length < 9){
       points.value.push(contestants.value[loserIndex.value])
-      if(contestants.value.length==2){
+      if(contestants.value.length == 2){
         points.value.push(contestants.value[winnerIndex.value])
       }
     }
@@ -157,32 +204,16 @@ const selectWinner = () => {
     loserIndex.value = null
     winnerIndex.value = null
     isAnimating.value = false
-
   }, 500) 
 }
-const summaryScreen = ref(null)
 
-const downloadScreenshot = async () => {
-  if (!summaryScreen.value) return
-  
-  try {
-    const canvas = await html2canvas(summaryScreen.value, {
-      useCORS: true,
-      backgroundColor: '#111827',
-      scale: 2
-    })
-    const link = document.createElement('a')
-    link.download = `ranking-turnieju-${contestants.value[0].name}.png`
-    link.href = canvas.toDataURL('image/png')
-    link.click()
-  } catch (error) {
-    console.error("Nie udało się zrobić screena:", error)
-  }
+const handleGoHome = () => {
+  goHome()
 }
 </script>
 
 <template>
-  <div class="relative h-screen flex flex-col p-6 box-border bg-gray-900">
+  <div class="relative h-screen flex flex-col p-6 box-border bg-gray-900 overflow-hidden">
     
     <div v-if="previewIdol" class="flex flex-col items-center justify-center h-full">
       <div class="absolute top-6 left-8">
@@ -191,7 +222,6 @@ const downloadScreenshot = async () => {
       <div class="w-[520px] max-w-md h-[720px]">
         <ProfileCard :idol="previewIdol" class="w-full h-full cursor-default hover:scale-100" />
       </div>
-
       <button 
         @click="goHome" 
         class="mt-12 px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full transition-colors uppercase tracking-widest text-sm"
@@ -201,66 +231,20 @@ const downloadScreenshot = async () => {
     </div>
 
     <template v-else>
-      <div v-if="stageName" class="absolute top-6 left-8 z-50 flex flex-col gap-4 max-w-xs w-64">
-        
-        <div class="bg-gray-800 border border-gray-700 px-6 py-2 rounded-full shadow-lg w-max">
-          <span class="text-emerald-400 font-bold text-xl uppercase tracking-widest">{{ stageName }}</span>
-          <span v-if="stageName !== 'Zwycięzca!'" class="text-gray-400 ml-2 text-sm font-medium">
-            (Mecz {{ (currentIndex / 2) + 1 }} / {{ contestants.length / 2 }})
-          </span>
-        </div>
+      <TournamentSidebar 
+        v-if="stageName !== 'Zwycięzca!'"
+        :stage-name="stageName"
+        :current-index="currentIndex"
+        :contestants="contestants"
+        :group-stats="groupStats"
+        :points="points"
+      />
 
-        <div 
-          v-if="stageName !== 'Zwycięzca!' && groupStats.length > 0" 
-          class="bg-gray-800/95 border border-gray-700 p-4 rounded-xl shadow-xl backdrop-blur-sm  overflow-y-auto"
-        >
-          
-          <ul class="flex flex-col gap-3">
-            <li v-for="stat in groupStats" :key="stat.group" class="flex flex-col">
-              
-              <div class="flex justify-between items-end mb-1">
-                <span class="text-gray-200 font-semibold text-sm truncate pr-2">{{ stat.group }}</span>
-                <span class="text-xs text-gray-400 font-mono whitespace-nowrap">
-                  {{ stat.current }}/{{ stat.total }} ({{ stat.percentage }}%)
-                </span>
-              </div>
-              
-              <div class="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                <div 
-                  class="bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-out" 
-                  :style="{ width: stat.percentage + '%' }"
-                ></div>
-              </div>
-              
-            </li>
-          </ul>
-        </div>
-        <div v-else
-          class="bg-gray-800/95 border border-gray-700 p-4 rounded-xl shadow-xl backdrop-blur-sm  overflow-y-auto">
-          <ul class="flex flex-col gap-3">
-            <li v-for="cont,index in points" :key="cont.name" class="flex flex-col">
-              <div class="flex justify-between items-end mb-1">
-                <span class="text-emerald-500 mr-2">#{{ getRank(index) }}</span> 
-                <span class="text-gray-200 font-semibold text-sm truncate pr-2">{{ cont.name }}</span>
-              </div>
-            </li>
-          </ul>
-      </div>
-      </div>
-      <div v-else
-          class="bg-gray-800/95 border border-gray-700 p-4 rounded-xl shadow-xl backdrop-blur-sm  overflow-y-auto">
-          <ul class="flex flex-col gap-3">
-            <li class="flex flex-col">
-              Winner
-            </li>
-          </ul>
-      </div>
       <div v-if="contestants.length > 1" class="flex flex-col items-center h-full pt-12">
-        
         <div class="flex-1 w-full max-w-6xl flex gap-8 items-center justify-center min-h-0">
-          
           <ProfileCard 
             :key="contestants[currentIndex].id"
+            ref="leftCardRef"
             :idol="contestants[currentIndex]" 
             @click="closerLook(contestants[currentIndex])"
             class="flex-1 transition-all duration-500 ease-out"
@@ -276,6 +260,7 @@ const downloadScreenshot = async () => {
           
           <ProfileCard
             :key="contestants[currentIndex + 1].id"
+            ref="rightCardRef"
             :idol="contestants[currentIndex + 1]" 
             @click="closerLook(contestants[currentIndex + 1])"
             class="flex-1 transition-all duration-500 ease-out"
@@ -296,21 +281,20 @@ const downloadScreenshot = async () => {
         >
           Wybierz <span v-if="current">{{ current.name }}</span>
         </button>
-        
       </div>
 
-      <div v-else-if="contestants.length === 1 && stageName === 'Zwycięzca!'" class="flex flex-col items-center justify-center h-full">
-        <h1 class="text-5xl font-black text-emerald-400 mb-12 uppercase tracking-widest animate-bounce">{{ contestants[0].name }}</h1>
-        <div class="w-full max-w-md h-[600px]">
-          <ProfileCard :idol="contestants[0]" class="w-full h-full shadow-[0_0_50px_rgba(16,185,129,0.5)] border-4 border-emerald-500 cursor-default hover:scale-100" />
-        </div>
-        
+      <div v-else-if="contestants.length === 1 && stageName === 'Zwycięzca!'" class="flex flex-col items-center justify-center h-full w-full overflow-hidden">
+        <WinnerSummary 
+          ref="winnerSummaryRef"
+          :contestant="contestants[0]"
+          :points="points"
+          @go-home="handleGoHome"
+        />
       </div>
       
       <div v-else class="h-full flex items-center justify-center text-2xl text-gray-500 font-bold animate-pulse">
         Czekaj pls
       </div>
     </template>
-    
   </div>
 </template>

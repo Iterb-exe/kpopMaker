@@ -42,6 +42,9 @@ const prevImage = () => {
     currentIndex.value = (currentIndex.value - 1 + props.idol.images.length) % props.idol.images.length
   }
 }
+defineExpose({
+  nextImage
+})
 </script>
 
 <template>

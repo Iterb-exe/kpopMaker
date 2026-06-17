@@ -1,10 +1,6 @@
 backend/node_modules/
-backend/idols/**/*.jpg
-backend/idols/**/*.gif
-backend/idols/**/*.jpeg
-backend/idols/**/*.webp
-backend/idols/**/*.png
 kpopMaker/node_modules/
+backend/idols/
 .vscode/
 .env
 .DS_Store
