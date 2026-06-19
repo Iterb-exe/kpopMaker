@@ -15,8 +15,14 @@ const getImageUrl = (imagePath) => {
   let fileName = pathParts[pathParts.length - 1]
   fileName = fileName.replaceAll(' ', '_')
 
-  const cloudName = "dur68snjw" 
-  return `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`
+  const cloudName = "dur68snjw"
+const isGif = fileName.toLowerCase().split('?')[0].endsWith('.gif');
+
+if (isGif) {
+  return `https://res.cloudinary.com/${cloudName}/image/upload/${fileName}`;
+} else {
+  return `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`;
+}
 }
 const preloadImages = (images) => {
   if (!images || images.length === 0) return

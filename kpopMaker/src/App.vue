@@ -142,7 +142,14 @@ const fetchContestants = async () => {
           const pathParts = idol.images[0].replaceAll('\\', '/').split('/')
           let fileName = pathParts[pathParts.length - 1].replaceAll(' ', '_')
           const cloudName = "dur68snjw"
-          img.src = `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`
+          const isGif = fileName.toLowerCase().split('?')[0].endsWith('.gif');
+
+if (isGif) {
+  img.src = `https://res.cloudinary.com/${cloudName}/image/upload/${fileName}`;
+} else {
+  img.src = `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`;
+}
+          
         }
       })
     }, 1000)

@@ -1,3 +1,4 @@
+name: kpop-turniej
 services:
   kpop-tournament:
     build: .
