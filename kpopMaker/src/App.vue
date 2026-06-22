@@ -20,7 +20,10 @@ const leftCardRef = ref(null)
 const rightCardRef = ref(null)
 const winnerSummaryRef = ref(null)
 
-const goHome = () => { window.location.href = '/' }
+const goHome = () => { 
+  localStorage.removeItem('kpop_tournament_state')
+  window.location.href = '/' 
+}
 
 const shuffle = (array) => {
   const newArray = [...array]
@@ -115,6 +118,18 @@ const initTournament = (data) => {
   }
 }
 
+const saveTournamentState = () => {
+  const state = {
+    contestants: contestants.value,
+    winners: winners.value,
+    points: points.value,
+    currentIndex: currentIndex.value,
+    stageName: stageName.value,
+    initialGroupCounts: initialGroupCounts.value
+  }
+  localStorage.setItem('kpop_tournament_state', JSON.stringify(state))
+}
+
 const fetchContestants = async () => {
   try {
     const response = await fetch('/api/contestants')
@@ -135,25 +150,42 @@ const fetchContestants = async () => {
         return
       }
     }
+    
     setTimeout(() => {
+      const isDevMode = import.meta.env.VITE_DEV_MODE === 'true'
+      const cloudName = import.meta.env.VITE_CLOUD_NAME || 'dur68snjw'
       data.forEach(idol => {
         if (idol.images && idol.images.length > 0) {
           const img = new Image()
           const pathParts = idol.images[0].replaceAll('\\', '/').split('/')
           let fileName = pathParts[pathParts.length - 1].replaceAll(' ', '_')
-          const cloudName = "dur68snjw"
-          const isGif = fileName.toLowerCase().split('?')[0].endsWith('.gif');
-
-if (isGif) {
-  img.src = `https://res.cloudinary.com/${cloudName}/image/upload/${fileName}`;
-} else {
-  img.src = `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`;
-}
           
+          if (isDevMode) {
+            img.src = `https://placehold.co/800x1200/374151/10B981?text=${fileName}`
+          } else {
+            const isGif = fileName.toLowerCase().split('?')[0].endsWith('.gif')
+            if (isGif) {
+              img.src = `https://res.cloudinary.com/${cloudName}/image/upload/${fileName}`
+            } else {
+              img.src = `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`
+            }
+          }
         }
       })
     }, 1000)
-    initTournament(data)
+    const savedState = localStorage.getItem('kpop_tournament_state')
+    if (savedState) {
+      const parsed = JSON.parse(savedState)
+      contestants.value = parsed.contestants
+      winners.value = parsed.winners
+      points.value = parsed.points
+      currentIndex.value = parsed.currentIndex
+      stageName.value = parsed.stageName
+      initialGroupCounts.value = parsed.initialGroupCounts
+    } else {
+      initTournament(data)
+      saveTournamentState()
+    }
   } catch (error) {
     console.error(error)
   }
@@ -210,6 +242,7 @@ const selectWinner = () => {
     }
     loserIndex.value = null
     winnerIndex.value = null
+    saveTournamentState()
     isAnimating.value = false
   }, 500) 
 }

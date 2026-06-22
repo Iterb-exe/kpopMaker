@@ -14,23 +14,28 @@ const getImageUrl = (imagePath) => {
   const pathParts = imagePath.replaceAll('\\', '/').split('/')
   let fileName = pathParts[pathParts.length - 1]
   fileName = fileName.replaceAll(' ', '_')
+  const isDevMode = import.meta.env.VITE_DEV_MODE === 'true'
+  const cloudName = import.meta.env.VITE_CLOUD_NAME || 'dur68snjw'
+  if (isDevMode) {
+    return `https://placehold.co/800x1200/374151/10B981?text=${fileName}`
+  }
+  const isGif = fileName.toLowerCase().split('?')[0].endsWith('.gif')
 
-  const cloudName = "dur68snjw"
-const isGif = fileName.toLowerCase().split('?')[0].endsWith('.gif');
-
-if (isGif) {
-  return `https://res.cloudinary.com/${cloudName}/image/upload/${fileName}`;
-} else {
-  return `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`;
-}
+  if (isGif) {
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${fileName}`
+  } else {
+    return `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`
+  }
 }
 const preloadImages = (images) => {
-  if (!images || images.length === 0) return
+  const isDevMode = import.meta.env.VITE_DEV_MODE === 'true';
+  if (isDevMode) return;
+  if (!images || images.length === 0) return;
   images.forEach(imagePath => {
-    const img = new Image()
-    img.src = getImageUrl(imagePath)
-  })
-}
+    const img = new Image();
+    img.src = getImageUrl(imagePath);
+  });
+};
 watch(() => props.idol, (newIdol) => {
   currentIndex.value = 0
   if (newIdol && newIdol.images) {
