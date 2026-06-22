@@ -1,4 +1,5 @@
 backend/node_modules/
+backend/generated/prisma
 kpopMaker/node_modules/
 backend/idols/
 .vscode/

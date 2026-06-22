@@ -1,10 +1,29 @@
 name: kpop-turniej
+
 services:
+  postgres:
+    image: postgres:latest
+    container_name: kpop-postgres
+    environment:
+      POSTGRES_PASSWORD: tajnehaslo123
+      POSTGRES_DB: kpop_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   kpop-tournament:
     build: .
     container_name: kpop-app
     ports:
       - "3000:3000"
     restart: unless-stopped
+    depends_on:
+      - postgres
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:tajnehaslo123@postgres:5432/kpop_db?schema=public
+
+volumes:
+  postgres_data:
