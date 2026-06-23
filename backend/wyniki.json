@@ -1,0 +1,119 @@
+[
+  {
+    "playerName": "Hubert",
+    "scores": [
+      { "idolName": "rora", "points": 10 },
+      { "idolName": "tzuyu", "points": 7 },
+      { "idolName": "ningning", "points": 5 },
+      { "idolName": "kazuha", "points": 5 },
+      { "idolName": "wonhee", "points": 4 },
+      { "idolName": "karina", "points": 4 },
+      { "idolName": "sana", "points": 4 },
+      { "idolName": "wonyoung", "points": 4 }
+    ]
+  },
+  {
+    "playerName": "Cinson",
+    "scores": [
+      { "idolName": "anna", "points": 10 },
+      { "idolName": "karina", "points": 7 },
+      { "idolName": "liz", "points": 5 },
+      { "idolName": "kazuha", "points": 5 },
+      { "idolName": "lia", "points": 4 },
+      { "idolName": "yeji", "points": 4 },
+      { "idolName": "sulyoon", "points": 4 },
+      { "idolName": "tzuyu", "points": 4 }
+    ]
+  },
+  {
+    "playerName": "Krzychu",
+    "scores": [
+      { "idolName": "kazuha", "points": 10 },
+      { "idolName": "momo", "points": 7 },
+      { "idolName": "gawon", "points": 5 },
+      { "idolName": "sana", "points": 5 },
+      { "idolName": "ryujin", "points": 4 },
+      { "idolName": "sulyoon", "points": 4 },
+      { "idolName": "chaeryeong", "points": 4 },
+      { "idolName": "mina", "points": 4 }
+    ]
+  },
+  {
+    "playerName": "Paulina",
+    "scores": [
+      { "idolName": "ella", "points": 10 },
+      { "idolName": "sooin", "points": 7 },
+      { "idolName": "ningning", "points": 5 },
+      { "idolName": "lisa", "points": 5 },
+      { "idolName": "jisoo", "points": 4 },
+      { "idolName": "miyeon", "points": 4 },
+      { "idolName": "tzuyu", "points": 4 },
+      { "idolName": "mina", "points": 4 }
+    ]
+  },
+  {
+    "playerName": "Ziarno",
+    "scores": [
+      { "idolName": "minji", "points": 10 },
+      { "idolName": "kazuha", "points": 7 },
+      { "idolName": "danielle", "points": 5 },
+      { "idolName": "ella", "points": 5 },
+      { "idolName": "ningning", "points": 4 },
+      { "idolName": "jihyoo", "points": 4 },
+      { "idolName": "wonyoung", "points": 4 },
+      { "idolName": "yujin", "points": 4 }
+    ]
+  },
+  {
+    "playerName": "Wiktor",
+    "scores": [
+      { "idolName": "lia", "points": 10 },
+      { "idolName": "haewon", "points": 7 },
+      { "idolName": "mina", "points": 5 },
+      { "idolName": "chaewon", "points": 5 },
+      { "idolName": "giselle", "points": 4 },
+      { "idolName": "kazuha", "points": 4 },
+      { "idolName": "rei", "points": 4 },
+      { "idolName": "yuna", "points": 4 }
+    ]
+  },
+  {
+    "playerName": "Gojsony",
+    "scores": [
+      { "idolName": "anna", "points": 10 },
+      { "idolName": "ningning", "points": 7 },
+      { "idolName": "asa", "points": 5 },
+      { "idolName": "sulyoon", "points": 5 },
+      { "idolName": "liz", "points": 4 },
+      { "idolName": "jihyoo", "points": 4 },
+      { "idolName": "kazuha", "points": 4 },
+      { "idolName": "haerin", "points": 4 }
+    ]
+  },
+  {
+    "playerName": "Malak",
+    "scores": [
+      { "idolName": "lisa", "points": 10 },
+      { "idolName": "chaewon", "points": 7 },
+      { "idolName": "mina", "points": 5 },
+      { "idolName": "jihyoo", "points": 5 },
+      { "idolName": "giselle", "points": 4 },
+      { "idolName": "ella", "points": 4 },
+      { "idolName": "wonyoung", "points": 4 },
+      { "idolName": "sana", "points": 4 }
+    ]
+  },
+  {
+    "playerName": "Gasior",
+    "scores": [
+      { "idolName": "anna", "points": 10 },
+      { "idolName": "ningning", "points": 7 },
+      { "idolName": "rora", "points": 5 },
+      { "idolName": "dahyun", "points": 5 },
+      { "idolName": "minji", "points": 4 },
+      { "idolName": "kyujin", "points": 4 },
+      { "idolName": "ella", "points": 4 },
+      { "idolName": "haum", "points": 4 }
+    ]
+  }
+]

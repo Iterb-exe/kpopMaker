@@ -257,9 +257,6 @@ const handleGoHome = () => {
   <div class="relative h-screen flex flex-col p-6 box-border bg-gray-900 overflow-hidden">
     
     <div v-if="previewIdol" class="flex flex-col items-center justify-center h-full">
-      <div class="absolute top-6 left-8">
-        <span class="text-amber-400 font-bold text-xl uppercase tracking-widest">Tryb Debugowania: {{ previewIdol.name }}</span>
-      </div>
       <div class="w-[520px] max-w-md h-[720px]">
         <ProfileCard :idol="previewIdol" class="w-full h-full cursor-default hover:scale-100" />
       </div>
