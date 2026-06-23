@@ -4,7 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { PrismaClient } from '@prisma/client';
-
+import bcrypt from 'bcryptjs';
+import { z } from 'zod';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -70,7 +71,34 @@ async function seedDatabase() {
     }
 }
 
+const requireAdmin = async (req, res, next) => {
+    try {
+        const clientPassword = req.headers['x-admin-password'];
+        const hash = process.env.ADMIN_PASSWORD_HASH;
+        if (!clientPassword || !hash) {
+            return res.status(401).json({ error: 'Odmowa dostępu lub błąd konfiguracji serwera.' });
+        }
+        const isValid = await bcrypt.compare(clientPassword, hash);
 
+        if (isValid) {
+            next();
+        } else {
+            return res.status(401).json({ error: 'Odmowa dostępu. Nieprawidłowe hasło.' });
+        }
+    } catch (error) {
+        console.error("Błąd podczas autoryzacji:", error);
+        return res.status(500).json({ error: 'Wewnętrzny błąd serwera.' });
+    }
+};
+const tournamentSchema = z.object({
+    playerName: z.string().min(1, "Imię gracza nie może być puste").max(50, "Imię gracza jest za długie"),
+    scores: z.array(
+        z.object({
+            idolId: z.number().int().positive("ID idolki musi być dodatnią liczbą całkowitą"),
+            points: z.number().int().min(0, "Punkty nie mogą być ujemne")
+        })
+    ).min(1, "Turniej musi zawierać co najmniej jeden wynik")
+});
 app.get('/api/contestants', async (req, res) => {
     try {
         const idols = await prisma.idol.findMany();
@@ -83,13 +111,12 @@ app.get('/api/contestants', async (req, res) => {
 
 app.post('/api/tournaments', async (req, res) => {
     try {
-        const { playerName, scores } = req.body;
-
+        const validatedData = tournamentSchema.parse(req.body);
         const newTournament = await prisma.tournament.create({
             data: {
-                playerName: playerName,
+                playerName: validatedData.playerName,
                 scores: {
-                    create: scores.map(score => ({
+                    create: validatedData.scores.map(score => ({
                         points: score.points,
                         idol: { connect: { id: score.idolId } }
                     }))
@@ -98,16 +125,28 @@ app.post('/api/tournaments', async (req, res) => {
         });
 
         return res.status(201).json({ message: "Wynik zapisany!", tournament: newTournament });
+        
     } catch (error) {
+        if (error instanceof z.ZodError) {
+            console.warn("Odrzucono niepoprawne dane:", error.errors);
+            return res.status(400).json({ 
+                error: "Niepoprawne dane wejściowe", 
+                details: error.errors 
+            });
+        }
         console.error("Błąd podczas zapisywania turnieju:", error);
         return res.status(500).json({ error: "Nie udało się zapisać wyników." });
     }
 });
-app.get('/api/tournaments', async (req, res) => {
+app.get('/api/tournaments', requireAdmin ,async (req, res) => {
     try {
         const tournaments = await prisma.tournament.findMany({
-            where: {
-                status: 'PENDING'
+            orderBy: { createdAt: 'desc' },
+            include: {
+                scores: {
+                    orderBy: { points: 'desc' }, 
+                    include: { idol: true } 
+                }
             }
         });
         return res.json(tournaments);
@@ -145,6 +184,39 @@ app.get('/api/ranking', async (req, res) => {
     } catch (error) {
         console.error("Błąd podczas generowania rankingu:", error);
         return res.status(500).json({ error: "Błąd serwera podczas pobierania rankingu." });
+    }
+});
+
+app.put('/api/tournaments/:id/approve', requireAdmin,async (req, res) => {
+    try {
+        const tournamentId = parseInt(req.params.id);
+
+        const updatedTournament = await prisma.tournament.update({
+            where: { id: tournamentId },
+            data: { status: 'APPROVED' }
+        });
+
+        return res.json({ message: "Turniej zatwierdzony!", tournament: updatedTournament });
+    } catch (error) {
+        console.error("Błąd podczas akceptacji turnieju:", error);
+        return res.status(500).json({ error: "Nie udało się zaktualizować statusu." });
+    }
+});
+
+app.delete('/api/tournaments/:id', requireAdmin,async (req, res) => {
+    try {
+        const tournamentId = parseInt(req.params.id);
+        await prisma.score.deleteMany({
+            where: { tournamentId: tournamentId }
+        });
+        await prisma.tournament.delete({
+            where: { id: tournamentId }
+        });
+
+        return res.json({ message: "Turniej i jego wyniki zostały trwale usunięte." });
+    } catch (error) {
+        console.error("Błąd podczas usuwania turnieju:", error);
+        return res.status(500).json({ error: "Nie udało się usunąć turnieju." });
     }
 });
 
