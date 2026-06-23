@@ -12,13 +12,11 @@ const getImageUrl = (imagePath) => {
   if (!imagePath) return ''
   if (imagePath.startsWith('http')) return imagePath
   const pathParts = imagePath.replaceAll('\\', '/').split('/')
-  let fileName = pathParts[pathParts.length - 1]
-  fileName = fileName.replaceAll(' ', '_')
-  const isDevMode = import.meta.env.VITE_DEV_MODE === 'true'
-  const cloudName = import.meta.env.VITE_CLOUD_NAME || 'dur68snjw'
-  if (isDevMode) {
+  let fileName = pathParts[pathParts.length - 1].replaceAll(' ', '_')
+  if (import.meta.env.DEV) {
     return `https://placehold.co/800x1200/374151/10B981?text=${fileName}`
   }
+  const cloudName = import.meta.env.VITE_CLOUD_NAME || 'dur68snjw'
   const isGif = fileName.toLowerCase().split('?')[0].endsWith('.gif')
 
   if (isGif) {
@@ -27,9 +25,10 @@ const getImageUrl = (imagePath) => {
     return `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`
   }
 }
+
 const preloadImages = (images) => {
-  const isDevMode = import.meta.env.VITE_DEV_MODE === 'true';
-  if (isDevMode) return;
+  if (import.meta.env.DEV) return;
+  
   if (!images || images.length === 0) return;
   images.forEach(imagePath => {
     const img = new Image();

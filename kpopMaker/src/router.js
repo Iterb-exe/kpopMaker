@@ -8,7 +8,7 @@ const routes = [
   { path: '/ranking', component: RankingView },
   { path: '/admin', component: AdminView },
   { path: '/winner', component: TournamentView },
-  { path: '/:idolName', component: TournamentView } // Musi być na samym końcu!
+  { path: '/:idolName', component: TournamentView }
 ]
 
 const router = createRouter({

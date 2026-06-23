@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue'
 import ProfileCard from './ProfileCard.vue'
-import html2canvas from 'html2canvas'
 
 const props = defineProps({
   contestant: {
@@ -15,50 +14,66 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['go-home'])
-const summaryScreenRef = ref(null)
 const winnerCardRef = ref(null)
 const playerName = ref('')
+const isSubmitting = ref(false)
+const isSuccess = ref(false)
+
 const getRank = (index) => {
   if (index === 7) return '1'
   if (index === 6) return '2'
   if (index >= 4) return '3-4'
   return '5-8'
 }
+
+const calculatePoints = (index) => {
+  if (index === 7) return 10 
+  if (index === 6) return 7  
+  if (index >= 4) return 5   
+  return 4             
+}
+
 const cycleWinnerImage = () => {
   winnerCardRef.value?.nextImage()
 }
 
-const handleDownload = async () => {
-  if (!playerName.value.trim()) {
-    alert("Wpisz swoje imię, żeby pobrać wynik!")
-    return
-  }
-
-  if (!summaryScreenRef.value) return
+const handleSubmitResults = async () => {
+  if (!playerName.value.trim() || isSubmitting.value) return
   
+  isSubmitting.value = true
+
+  const scoresPayload = props.points.map((cont, index) => {
+    return {
+      idolId: cont.id,
+      points: calculatePoints(index)
+    }
+  })
+
   try {
-    const canvas = await html2canvas(summaryScreenRef.value, {
-      useCORS: true,
-      backgroundColor: '#111827',
-      scale: 2
+    const response = await fetch('/api/tournaments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        playerName: playerName.value.trim(),
+        scores: scoresPayload
+      })
     })
-    const safeName = playerName.value.trim().replaceAll(' ', '_')
+
+    if (!response.ok) throw new Error("Błąd sieci")
     
-    const link = document.createElement('a')
-    link.download = `${safeName}-kpop.png`
-    link.href = canvas.toDataURL('image/png')
-    link.click()
+    isSuccess.value = true
   } catch (error) {
-    console.error("Nie udało się zrobić screena:", error)
+    console.error("Nie udało się zapisać wyniku:", error)
+    alert("Wystąpił błąd podczas zapisywania w bazie danych.")
+  } finally {
+    isSubmitting.value = false
   }
 }
 
 const handleGoHome = () => {
   emit('go-home')
 }
-defineExpose({
-  cycleWinnerImage
-})
+defineExpose({ cycleWinnerImage })
 </script>
 
 <template>
@@ -76,7 +91,7 @@ defineExpose({
       />
     </div>
 
-    <div ref="summaryScreenRef" class="w-full max-w-2xl bg-gray-800/95 border border-gray-700 p-6 rounded-xl shadow-xl backdrop-blur-sm mb-8">
+    <div class="w-full max-w-2xl bg-gray-800/95 border border-gray-700 p-6 rounded-xl shadow-xl backdrop-blur-sm mb-8">
       <h2 class="text-emerald-400 font-bold text-xl uppercase tracking-widest mb-4 text-center">Końcowy Ranking</h2>
       <ul class="flex flex-col gap-2">
         <li v-for="(cont, index) in points" :key="cont.name" class="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
@@ -87,33 +102,50 @@ defineExpose({
       </ul>
     </div>
 
-    <div class="flex flex-col items-center gap-4 mt-4" data-html2canvas-ignore="true">
+    <div class="flex flex-col items-center gap-4 mt-4">
       
-      <input 
-        v-model="playerName"
-        type="text" 
-        placeholder="Wpisz swoje imię..." 
-        class="w-full max-w-xs px-6 py-3 bg-gray-800 border-2 border-gray-700 focus:border-emerald-500 rounded-full text-white outline-none text-center transition-colors font-semibold tracking-wider placeholder-gray-500 shadow-inner"
-      />
+      <template v-if="!isSuccess">
+        <input 
+          v-model="playerName"
+          type="text" 
+          placeholder="Wpisz się" 
+          class="w-full max-w-xs px-6 py-3 bg-gray-800 border-2 border-gray-700 focus:border-emerald-500 rounded-full text-white outline-none text-center transition-colors font-semibold tracking-wider placeholder-gray-500 shadow-inner"
+        />
 
-      <div class="flex gap-4">
+        <div class="flex gap-4">
+          <button
+            @click="handleSubmitResults"
+            :disabled="!playerName.trim() || isSubmitting"
+            class="px-8 py-4 text-white font-bold rounded-full transition-all uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            :class="playerName.trim() && !isSubmitting ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-600'"
+          >
+            <svg v-if="!isSubmitting" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            <svg v-else class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            {{ isSubmitting ? 'Wysyłanie...' : 'Wyślij Wynik' }}
+          </button>
+          
+          <button
+            @click="handleGoHome"
+            class="px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full transition-colors uppercase tracking-widest text-sm shadow-lg"
+          >
+            Wróć do turnieju
+          </button>
+        </div>
+      </template>
+
+      <template v-else>
+        <div class="bg-emerald-900/50 border border-emerald-500 text-emerald-400 px-8 py-4 rounded-xl flex flex-col items-center gap-3">
+          <span class="font-bold tracking-widest uppercase">Sukces!</span>
+          <span class="text-sm text-center">Wynik został wysłany. Po akceptacji trafi do rankingu</span>
+        </div>
         <button
-          @click="handleDownload"
-          :disabled="!playerName.trim()"
-          class="px-8 py-4 text-white font-bold rounded-full transition-all uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-          :class="playerName.trim() ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-600'"
-        >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          Pobierz Wyniki
+            @click="handleGoHome"
+            class="mt-4 px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full transition-colors uppercase tracking-widest text-sm shadow-lg"
+          >
+            Wróć do strony głównej
         </button>
-        <button
-          @click="handleGoHome"
-          class="px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full transition-colors uppercase tracking-widest text-sm shadow-lg"
-        >
-          Wróć do turnieju
-        </button>
-      </div>
-      
+      </template>
+
     </div>
   </div>
 </template>

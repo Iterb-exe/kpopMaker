@@ -32,7 +32,7 @@ groups.forEach(group => {
                 files.forEach(file => {
                     if (file === 'opis.txt') {
                         descriptionText = fs.readFileSync(path.join(idolPath, file), 'utf-8');
-                    } else if (file.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                    } else if (file.match(/\.(jpg|jpeg|png|gif|webp|avif)$/i)) {
                         imagePath = `${group}/${idol}/${file}`;
                     } 
                 });

@@ -26,7 +26,7 @@ const winnerSummaryRef = ref(null)
 
 const goHome = () => { 
   localStorage.removeItem('kpop_tournament_state')
-  router.push('/')
+  window.location.href = '/'
 }
 
 const shuffle = (array) => {
@@ -156,23 +156,20 @@ const fetchContestants = async () => {
     }
     
     setTimeout(() => {
-      const isDevMode = import.meta.env.VITE_DEV_MODE === 'true'
+      if (import.meta.env.DEV) return;
       const cloudName = import.meta.env.VITE_CLOUD_NAME || 'dur68snjw'
+      
       data.forEach(idol => {
         if (idol.images && idol.images.length > 0) {
           const img = new Image()
           const pathParts = idol.images[0].replaceAll('\\', '/').split('/')
           let fileName = pathParts[pathParts.length - 1].replaceAll(' ', '_')
           
-          if (isDevMode) {
-            img.src = `https://placehold.co/800x1200/374151/10B981?text=${fileName}`
+          const isGif = fileName.toLowerCase().split('?')[0].endsWith('.gif')
+          if (isGif) {
+            img.src = `https://res.cloudinary.com/${cloudName}/image/upload/${fileName}`
           } else {
-            const isGif = fileName.toLowerCase().split('?')[0].endsWith('.gif')
-            if (isGif) {
-              img.src = `https://res.cloudinary.com/${cloudName}/image/upload/${fileName}`
-            } else {
-              img.src = `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`
-            }
+            img.src = `https://res.cloudinary.com/${cloudName}/image/upload/w_800,c_fill,g_auto,ar_3:4,f_auto,q_auto/${fileName}`
           }
         }
       })

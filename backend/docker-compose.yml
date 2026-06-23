@@ -2,7 +2,7 @@ name: kpop-turniej
 
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:16-alpine
     container_name: kpop-postgres
     environment:
       POSTGRES_PASSWORD: tajnehaslo123
@@ -11,6 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d kpop_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   kpop-tournament:
@@ -20,7 +25,9 @@ services:
       - "3000:3000"
     restart: unless-stopped
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma db push && node server.js"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:tajnehaslo123@postgres:5432/kpop_db?schema=public
