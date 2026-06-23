@@ -1,93 +1,128 @@
-# kpop — Technical README
+# K-pop Tournament Maker
 
-This repository contains two main parts:
+A polished full-stack web application for running interactive K-pop idol bracket tournaments and tracking a live global ranking system. Users can vote their favorite idols through a match-based tournament flow, submit results, and review rankings built from approved tournament outcomes.
 
-- a lightweight Node.js backend that serves a contestants list and static files
-- a Vite + Vue frontend (`kpopMaker`) that implements a tournament-style UI for browsing idols
+## Overview
 
-This README documents architecture, data format, environment variables, local development steps, and troubleshooting tips.
+K-pop Tournament Maker combines a modern Vue-based frontend with a Node.js and Prisma backend to create a fun, visual experience for idol battles. The app is designed for fans who want to compare idols, simulate tournaments, and see how their favorites perform over time.
 
-## Repository layout
+## Purpose
 
-- `backend/`
-  - `server.js` — Express server (ES module). Exposes `/api/contestants` and serves `dist/` as static files.
-  - `generate-db.js` — scans `idols/` folder and writes `baza.json` (contestants array).
-  - `baza.json` — generated contestants data (array of objects)
-  - `idols/` — source folders with images and optional `opis.txt` description files
-  - Dockerfile / docker-compose.yml
+The project serves two core goals:
 
-- `kpopMaker/` — frontend (Vite + Vue 3)
-  - `src/` — Vue components and application logic
-  - `dist/` — production build (served by backend when present)
-  - environment variables: `VITE_DEV_MODE`, `VITE_CLOUD_NAME`
+- Provide an engaging bracket-style tournament experience for K-pop idols.
+- Maintain a cumulative ranking based on submitted and approved tournament results.
 
-## Prerequisites
+## Tech Stack
 
-- Node.js (v16+ recommended)
-- npm or yarn
-- Optional: Docker & Docker Compose for containerized runs
+### Frontend
+- Vue 3
+- Vite
+- Vue Router
+- Tailwind CSS styling
+- HTML2Canvas for image-based export support
 
-## Data model
+### Backend
+- Node.js
+- Express
+- Prisma ORM
+- PostgreSQL
+- Zod for request validation
+- bcryptjs for admin authentication
 
-`generate-db.js` produces an array of contestant objects and writes it to `baza.json`. Each contestant has the shape:
+### DevOps
+- Docker
+- Docker Compose
+- Prisma migrations and database seeding
+- Production-ready container setup for the application and database
 
-```json
-{
-  "id": 1,
-  "group": "AESPA",
-  "name": "Giselle",
-  "images": ["aespa/giselle/photo.jpg"],
-  "description": "...text from opis.txt or null..."
-}
+## Core Features
+
+- Interactive bracket tournament flow with animated matchups
+- Profile cards with idol images, groups, and descriptions
+- Keyboard-friendly navigation for tournament play
+- Tournament submission and storage in the database
+- Admin moderation panel to approve or delete tournament results
+- Global ranking page based on approved matches
+- Persistent local state for resume-friendly gameplay
+- Dockerized local deployment for the app and PostgreSQL database
+
+## Project Structure
+
+```text
+kpop/
+├── backend/
+│   ├── server.js
+│   ├── generate-db.js
+│   ├── seed.js
+│   ├── baza.json
+│   ├── wyniki.json
+│   ├── docker-compose.yml
+│   ├── Dockerfile
+│   ├── prisma/
+│   │   └── schema.prisma
+│   └── idols/
+│       └── ...group and idol image data
+├── kpopMaker/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── views/
+│   │   ├── App.vue
+│   │   ├── main.js
+│   │   └── router.js
+│   ├── public/
+│   ├── package.json
+│   ├── vite.config.js
+│   └── tailwind.config.js
+└── README.md
+```
+
+## Local Setup
+
+### Prerequisites
+
+- Node.js 20 or newer
+- npm
+- Docker Desktop and Docker Compose
+
+### 1. Configure environment variables
+
+Create a file named `.env` inside the backend directory.
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=kpop
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/kpop?schema=public
+ADMIN_PASSWORD_HASH=your_bcrypt_hash_here
 ```
 
 Notes:
-- Only files with extensions `.jpg|.jpeg|.png|.gif` are included by the generator. Other formats (e.g. `.avif`) are ignored.
-- `images` contains relative paths under the `idols/` folder.
+- The `DATABASE_URL` value uses the Docker service name `postgres` when running inside containers.
+- `ADMIN_PASSWORD_HASH` should be a bcrypt hash of the password you want to use for the admin panel.
+- If you run the backend outside Docker, change the host to `localhost`.
 
-## Backend
+### 2. Start the application with Docker
 
-The backend is a minimal Express server (ES module). Important details:
-
-- API endpoint:
-  - `GET /api/contestants` — returns the JSON content of `baza.json` (200) or `{ error: "Brak bazy!" }` (500) if missing.
-
-- Static serving:
-  - The server serves `dist/` as static assets and responds to all other routes with `dist/index.html` (SPA mode).
-
-- Configuration:
-  - The server currently uses a hardcoded `PORT = 3000` and `DB_FILE = './baza.json'`.
-
-Recommended backend improvements:
-- Use environment variables (e.g. `PORT`, `DB_FILE`) and a small `dotenv` or `process.env` wrapper.
-- Return consistent error messages in English for broader users.
-- Add npm scripts (`start`, `dev`) to `backend/package.json`.
-
-### Run backend locally
+From the backend folder, run:
 
 ```bash
-cd backend
-npm install
-# generate database from `idols/` if needed
-node generate-db.js
-node server.js
+docker compose up -d --build
 ```
 
-If you prefer Docker:
+This command will:
+- Build the application container
+- Start PostgreSQL
+- Apply Prisma schema changes
+- Launch the backend server on port 3000
 
-```bash
-docker-compose up --build
-```
+Once the containers are running, open:
 
-## Frontend (kpopMaker)
+- http://localhost:3000
 
-The frontend is a Vite + Vue 3 single-page app that fetches `/api/contestants` on mount and builds the tournament UI.
+### 3. Optional: run the frontend separately
 
-Key environment variables used by the frontend:
-- `VITE_DEV_MODE` — when `'true'`, image URLs use placeholder images instead of Cloudinary (useful for local development).
-- `VITE_CLOUD_NAME` — Cloudinary cloud name used to build production image URLs (defaults to `dur68snjw` in code).
-
-Run frontend locally:
+If you want to develop the Vue app locally, run:
 
 ```bash
 cd kpopMaker
@@ -95,36 +130,40 @@ npm install
 npm run dev
 ```
 
-By default, Vite runs on `http://localhost:5173`. The frontend fetches `/api/contestants` relative to the current origin; when developing locally you can either:
+The development server will be available at:
 
-- run the backend on `localhost:3000` and configure a Vite proxy to forward `/api` to `http://localhost:3000`, or
-- run the backend and frontend on the same host (build frontend with `npm run build` and serve `dist/` from backend).
+- http://localhost:5173
 
-## Development notes / gotchas
+## Environment Variable Guide
 
-- `generate-db.js` ignores `.avif` files — if your `idols/` images use `.avif` the generator won't include them. Consider extending the regex to include other formats.
-- The backend logs and messages are in Polish (e.g. `Brak bazy!`, `Serwer działa na porcie`). Consider standardizing on English for open-source projects.
-- `server.js` uses a fixed port (`3000`). Expose `process.env.PORT` for flexibility.
-- Frontend expects Cloudinary-hosted images in production. If you want to serve images from the backend, adjust `ProfileCard.vue` image URL logic.
+### Backend
+- `DATABASE_URL`: Connection string for PostgreSQL.
+- `POSTGRES_USER`: PostgreSQL username.
+- `POSTGRES_PASSWORD`: PostgreSQL password.
+- `POSTGRES_DB`: PostgreSQL database name.
+- `ADMIN_PASSWORD_HASH`: Hash used to protect the admin endpoints.
 
-## Troubleshooting
+### Frontend
+- `VITE_DEV_MODE`: Enables placeholder image behavior in local development.
+- `VITE_CLOUD_NAME`: Cloudinary cloud name used for production image URLs.
 
-- `node server.js` exits with code 1 or returns 500 on `/api/contestants`:
-  - Ensure `baza.json` exists and is valid JSON. Run `node generate-db.js` to recreate it.
-  - Ensure `idols/` folder exists and contains subfolders with images.
+## API Highlights
 
-- Frontend shows empty or broken images:
-  - Check `VITE_DEV_MODE` setting in `.env` or Vite config.
-  - Verify `VITE_CLOUD_NAME` if using Cloudinary.
-  - Open browser console for CORS or 404 errors when fetching `/api/contestants`.
+The backend exposes the following main endpoints:
 
-## Recommended next steps
+- `GET /api/contestants` — returns all idol contestants
+- `POST /api/tournaments` — submits a completed tournament result
+- `GET /api/tournaments` — retrieves tournament history for admin review
+- `PUT /api/tournaments/:id/approve` — approves a tournament result
+- `DELETE /api/tournaments/:id` — removes a tournament result
+- `GET /api/ranking` — returns the global ranking
 
-1. Add `.env.example` files for the backend and frontend documenting required environment variables.
-2. Add `npm` scripts in `backend/package.json`: `start` and `dev` (e.g. `node server.js`, or `nodemon server.js`).
-3. Extend `generate-db.js` to include more image types and optionally produce thumbnail variants.
-4. Add basic tests for `generate-db.js` and a health-check endpoint (e.g. `GET /health`).
+## Development Notes
 
-## Contributing
+- Idol data is generated from the local `idols/` folder through the backend scripts.
+- The application uses Prisma with PostgreSQL for persistent tournament and ranking storage.
+- Docker Compose is the recommended path for a consistent local environment.
 
-- Fork the repo, create a feature branch, and open a pull request. Provide a short description of your change and the reasoning.
+## License
+
+This project is distributed under the existing repository license. See the project files for details.
