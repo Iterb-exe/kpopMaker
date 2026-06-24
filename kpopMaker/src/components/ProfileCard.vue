@@ -5,9 +5,15 @@ const props = defineProps({
   idol: {
     type: Object,
     required: true
+  },
+  staticMode: {
+    type: Boolean,
+    default: false
   }
 })
+
 const currentIndex = ref(0)
+
 const getImageUrl = (imagePath) => {
   if (!imagePath) return ''
   if (imagePath.startsWith('http')) return imagePath
@@ -28,19 +34,20 @@ const getImageUrl = (imagePath) => {
 
 const preloadImages = (images) => {
   if (import.meta.env.DEV) return;
-  
   if (!images || images.length === 0) return;
   images.forEach(imagePath => {
     const img = new Image();
     img.src = getImageUrl(imagePath);
   });
 };
+
 watch(() => props.idol, (newIdol) => {
   currentIndex.value = 0
   if (newIdol && newIdol.images) {
     preloadImages(newIdol.images)
   }
 }, { immediate: true })
+
 const nextImage = () => {
   if (props.idol.images && props.idol.images.length > 0) {
     currentIndex.value = (currentIndex.value + 1) % props.idol.images.length
@@ -52,13 +59,15 @@ const prevImage = () => {
     currentIndex.value = (currentIndex.value - 1 + props.idol.images.length) % props.idol.images.length
   }
 }
-defineExpose({
-  nextImage
-})
+
+defineExpose({ nextImage })
 </script>
 
 <template>
-  <div class="relative w-full h-full rounded-2xl overflow-hidden shadow-xl cursor-pointer transform transition duration-300 hover:scale-[1.02] hover:shadow-2xl bg-gray-800"> 
+  <div 
+    class="relative w-full h-full rounded-2xl overflow-hidden shadow-xl cursor-pointer transform transition duration-300 bg-gray-800"
+    :class="{ 'hover:scale-[1.02] hover:shadow-2xl': !staticMode }"
+  > 
     
     <img 
       v-if="idol.images && idol.images.length > 0"
@@ -76,16 +85,25 @@ defineExpose({
     <div v-if="idol.images && idol.images.length > 1" class="absolute inset-0 flex justify-between">
       <div 
         class="w-1/3 h-full z-10 bg-gradient-to-r from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" 
-        @click.stop="prevImage"
+        @click.stop.prevent="prevImage"
       ></div>
       <div 
         class="w-1/3 h-full z-10 bg-gradient-to-l from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" 
-        @click.stop="nextImage"
+        @click.stop.prevent="nextImage"
       ></div>
     </div>
     
     <div class="absolute bottom-0 w-full bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pt-12 z-20 pointer-events-none">
-      <p class="text-gray-300 text-sm font-semibold mb-1 uppercase tracking-wider">{{ idol.group }}</p>
+      
+      <router-link 
+        v-if="idol.group"
+        :to="`/group/${idol.group.toLowerCase()}`"
+        @click.stop
+        class="inline-block text-gray-300 hover:text-emerald-400 text-sm font-semibold mb-1 uppercase tracking-wider pointer-events-auto relative z-20 transition-colors hover:underline"
+      >
+        {{ idol.group }}
+      </router-link>
+
       <h2 class="text-white text-3xl font-bold">{{ idol.name }}</h2>
       
       <a 

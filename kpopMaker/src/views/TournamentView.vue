@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import ProfileCard from '../components/ProfileCard.vue'
 import TournamentSidebar from '../components/TournamentSidebar.vue'
 import WinnerSummary from '../components/WinnerSummary.vue'
-import { registerRuntimeCompiler } from 'vue'
 
 const router = useRouter()
 
@@ -60,7 +59,7 @@ const handleKeydown = (event) => {
     return
   }
 
-  if (isAnimating.value) registerRuntimeCompiler
+  if (isAnimating.value) return
   if (stageName.value !== 'Zwycięzca!') {
     if (event.key === 'ArrowLeft') {
       current.value = contestants.value[currentIndex.value]

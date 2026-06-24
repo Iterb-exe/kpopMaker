@@ -37,7 +37,8 @@ const goBack = () => {
       <div class="w-full max-w-[400px] sm:max-w-[480px] h-[70vh] min-h-[500px] max-h-[800px] relative">
         <ProfileCard 
           :idol="idol" 
-          class="w-full h-full cursor-default hover:scale-100 shadow-2xl" 
+          :staticMode="true" 
+          class="w-full h-full cursor-default shadow-2xl" 
         />
       </div>
       

@@ -53,9 +53,9 @@ const goBack = () => {
           v-for="member in members" 
           :key="member.id"
           :to="`/${member.name.toLowerCase()}`"
-          class="w-full max-w-[320px] aspect-[3/4] transition-transform hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] rounded-2xl"
+          class="w-full max-w-[320px] aspect-[3/4] rounded-2xl transition-opacity hover:opacity-90 block"
         >
-          <ProfileCard :idol="member" class="w-full h-full cursor-pointer" />
+          <ProfileCard :idol="member" :staticMode="true" class="w-full h-full" />
         </router-link>
       </div>
 
