@@ -114,7 +114,7 @@ defineExpose({ nextImage })
         class="inline-block mt-2 text-emerald-400 hover:text-emerald-300 font-bold text-sm tracking-wide transition-colors duration-200 pointer-events-auto relative z-20"
         @click.stop
       >
-        @ Instagram
+        {{ $t('profileCard.instagram') }}
       </a>
     </div>
 

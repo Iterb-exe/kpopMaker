@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   tour: {
@@ -12,6 +13,7 @@ const props = defineProps({
   }
 })
 
+const { t, locale } = useI18n()
 const emit = defineEmits(['updateStatus', 'deleteTour'])
 const isExpanded = ref(false)
 
@@ -22,7 +24,8 @@ const toggleExpand = () => {
 const formatDate = (isoString) => {
   if (!isoString) return ''
   const date = new Date(isoString)
-  return date.toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  const localeCode = locale.value === 'pl' ? 'pl-PL' : 'en-US'
+  return date.toLocaleString(localeCode, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 </script>
 
@@ -46,7 +49,7 @@ const formatDate = (isoString) => {
     <td class="hidden sm:table-cell px-4 md:px-6 py-4 text-gray-400 font-medium text-sm md:text-base">
       {{ formatDate(tour.createdAt) }}
     </td>
-    
+
     <td class="px-3 md:px-6 py-4 text-right">
       <div class="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2">
         <button 
@@ -54,14 +57,14 @@ const formatDate = (isoString) => {
           @click.stop="emit('updateStatus', tour.id)"
           class="w-full sm:w-auto px-3 py-2 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 hover:border-emerald-500 font-bold rounded-lg transition-all shadow-sm text-xs md:text-sm whitespace-nowrap"
         >
-          ✓ Akceptuj
+          ✓ {{ $t('tournamentRow.accept') }}
         </button>
-        
+
         <button 
           @click.stop="emit('deleteTour', tour.id)"
           class="w-full sm:w-auto px-3 py-2 bg-red-600/20 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/30 hover:border-red-500 font-bold rounded-lg transition-all shadow-sm text-xs md:text-sm whitespace-nowrap"
         >
-          ✗ Usuń
+          ✗ {{ $t('tournamentRow.delete') }}
         </button>
       </div>
     </td>
@@ -69,7 +72,7 @@ const formatDate = (isoString) => {
 
   <tr v-if="isExpanded" class="bg-gray-800/80 border-b border-gray-700">
     <td colspan="3" class="px-4 sm:px-8 md:px-14 py-4 md:py-6">
-      
+
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <router-link 
           v-for="(score, index) in tour.scores" 
@@ -81,7 +84,7 @@ const formatDate = (isoString) => {
             <span class="text-emerald-500 font-black text-sm w-5 shrink-0">#{{ index + 1 }}</span>
             <span class="text-gray-200 font-semibold truncate group-hover:text-emerald-400 transition-colors">{{ score.idol.name }}</span>
           </div>
-          <span class="bg-gray-700 px-2 py-1 rounded text-xs font-bold text-gray-300 shrink-0 ml-2">{{ score.points }} pkt</span>
+          <span class="bg-gray-700 px-2 py-1 rounded text-xs font-bold text-gray-300 shrink-0 ml-2">{{ $t('tournamentRow.points', { points: score.points }) }}</span>
         </router-link>
       </div>
 

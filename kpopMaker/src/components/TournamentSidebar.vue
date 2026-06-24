@@ -1,5 +1,8 @@
 <script setup>
-defineProps({
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const props = defineProps({
   stageName: {
     type: String,
     required: true
@@ -22,6 +25,12 @@ defineProps({
   }
 })
 
+const { t } = useI18n()
+
+const isWinnerStage = computed(() => {
+  return props.stageName === t('tournament.winner') || props.stageName === 'Zwycięzca!'
+})
+
 const getRank = (index) => {
   if (index === 7) return '1'
   if (index === 6) return '2'
@@ -35,15 +44,15 @@ const getRank = (index) => {
     
     <div class="bg-gray-800 border border-gray-700 px-6 py-2 rounded-full shadow-lg w-max">
       <span class="text-emerald-400 font-bold text-xl uppercase tracking-widest">{{ stageName }}</span>
-      <span v-if="stageName !== 'Zwycięzca!'" class="text-gray-400 ml-2 text-sm font-medium">
-        (Mecz {{ (currentIndex / 2) + 1 }} / {{ contestants.length / 2 }})
+      <span v-if="!isWinnerStage" class="text-gray-400 ml-2 text-sm font-medium">
+        ({{ $t('tournament.matchLabel', { current: (currentIndex / 2) + 1, total: contestants.length / 2 }) }})
       </span>
     </div>
 
     <div
       class="bg-gray-800/95 border border-gray-700 p-4 rounded-xl shadow-xl backdrop-blur-sm overflow-y-auto"
     >
-      <ul v-if="stageName !== 'Zwycięzca!' && groupStats.length > 0" class="flex flex-col gap-3">
+      <ul v-if="!isWinnerStage && groupStats.length > 0" class="flex flex-col gap-3">
         <li v-for="stat in groupStats" :key="stat.group" class="flex flex-col">
           <div class="flex justify-between items-end mb-1">
             <router-link 
@@ -71,7 +80,7 @@ const getRank = (index) => {
       to="/ranking"
       class="bg-gray-800/95 border border-gray-700 hover:border-emerald-500 hover:bg-gray-700 text-gray-300 hover:text-emerald-400 p-3 rounded-xl shadow-xl backdrop-blur-sm transition-all duration-300 flex items-center justify-center gap-3 font-bold uppercase tracking-wider text-sm group"
     >
-      Ranking Globalny
+      {{ $t('tournament.globalRanking') }}
     </router-link>
 
   </div>

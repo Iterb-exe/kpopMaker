@@ -1,0 +1,100 @@
+{
+  "app": {
+    "title": "K-pop Maker",
+    "welcome": "Welcome to K-pop Maker"
+  },
+  "nav": {
+    "home": "Home",
+    "ranking": "Ranking"
+  },
+  "tournament": {
+    "winner": "Winner!",
+    "matchLabel": "Match {current} / {total}",
+    "globalRanking": "Global Ranking",
+    "stages": {
+      "final": "Final",
+      "semiFinal": "Semifinal",
+      "quarterFinal": "Quarterfinal",
+      "elimination": "Eliminations"
+    },
+    "round": "Round {value}",
+    "select": "Choose",
+    "vs": "VS",
+    "waiting": "Please wait",
+    "rankingLink": "Ranking",
+    "fetchError": "Failed to load tournament data"
+  },
+  "profileCard": {
+    "instagram": "@ Instagram"
+  },
+  "admin": {
+    "backHome": "Back to home page",
+    "requiredAuthorization": "Authorization required",
+    "loginError": "Incorrect password! Please try again.",
+    "passwordPlaceholder": "Administrator password...",
+    "loading": "Loading...",
+    "login": "Log in",
+    "panelTitle": "Admin Panel",
+    "logout": "Log out",
+    "pendingTitle": "Pending decision ({count})",
+    "noPendingResults": "No results to review!",
+    "player": "Player",
+    "date": "Date",
+    "actions": "Actions",
+    "approvedHistory": "Approved game history ({count})",
+    "confirmApprove": "Approve this result for the global ranking?",
+    "confirmDelete": "WARNING! Permanently delete this tournament?",
+    "sessionExpired": "Session expired. Please log in again.",
+    "serverError": "Server error",
+    "unauthorizedAccess": "Unauthorized access",
+    "fetchError": "Error loading tournaments"
+  },
+  "tournamentRow": {
+    "accept": "Accept",
+    "delete": "Delete",
+    "points": "{points} pts"
+  },
+  "winnerSummary": {
+    "finalRanking": "Final Ranking",
+    "enterName": "Enter your name",
+    "submitResult": "Submit result",
+    "submitting": "Submitting...",
+    "backToTournament": "Back to tournament",
+    "backToHome": "Back to home page",
+    "successTitle": "Success!",
+    "successMessage": "The result was sent. After approval it will appear in the ranking.",
+    "networkError": "Network error",
+    "saveFailed": "Failed to save the result",
+    "saveError": "An error occurred while saving to the database."
+  },
+  "groupProfile": {
+    "loading": "Loading group...",
+    "members": "Team members ({count})",
+    "back": "Back",
+    "notFound": "This group was not found!",
+    "fetchError": "Failed to load group data"
+  },
+  "idolProfile": {
+    "loading": "Loading profile...",
+    "back": "Back",
+    "notFound": "This idol was not found!",
+    "fetchError": "Failed to load idol data"
+  },
+  "ranking": {
+    "backToGame": "Back to game",
+    "title": "Global Ranking",
+    "description": "Total points from all played and approved tournaments.",
+    "loading": "Loading results from the database...",
+    "pointsLabel": "PTS",
+    "fetchError": "Failed to load ranking",
+    "refreshFailed": "Failed to refresh ranking"
+  },
+  "errors": {
+    "default": "Something went wrong",
+    "AUTH_FAILED": "Authentication failed",
+    "INVALID_DATA": "Invalid data provided",
+    "DB_ERROR": "Database error",
+    "SERVER_ERROR": "Server error",
+    "NOT_FOUND": "Not found"
+  }
+}

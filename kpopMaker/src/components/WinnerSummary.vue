@@ -1,12 +1,15 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ProfileCard from './ProfileCard.vue'
+import { handleFetchError } from '../utils/errorHandler'
 
 const props = defineProps({
   contestant: { type: Object, required: true },
   points: { type: Array, required: true }
 })
 
+const { t } = useI18n()
 const emit = defineEmits(['go-home'])
 const winnerCardRef = ref(null)
 const playerName = ref('')
@@ -21,10 +24,10 @@ const getRank = (index) => {
 }
 
 const calculatePoints = (index) => {
-  if (index === 7) return 10 
-  if (index === 6) return 7  
-  if (index >= 4) return 5   
-  return 4             
+  if (index === 7) return 10
+  if (index === 6) return 7
+  if (index >= 4) return 5
+  return 4
 }
 
 const cycleWinnerImage = () => {
@@ -45,11 +48,10 @@ const handleSubmitResults = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerName: playerName.value.trim(), scores: scoresPayload })
     })
-    if (!response.ok) throw new Error("Błąd sieci")
+    await handleFetchError(response, t)
     isSuccess.value = true
   } catch (error) {
-    console.error("Nie udało się zapisać wyniku:", error)
-    alert("Wystąpił błąd podczas zapisywania w bazie danych.")
+    console.error(t('winnerSummary.saveFailed'), error)
   } finally {
     isSubmitting.value = false
   }
@@ -60,9 +62,9 @@ const handleGoHome = () => {
 }
 const handleEnter = () => {
   if (isSuccess.value) {
-    handleGoHome() 
+    handleGoHome()
   } else if (playerName.value.trim() && !isSubmitting.value) {
-    handleSubmitResults() 
+    handleSubmitResults()
   }
 }
 const handleKeydown = (e) => {
@@ -84,7 +86,7 @@ defineExpose({ cycleWinnerImage })
 
 <template>
   <div class="flex flex-col items-center justify-start min-h-full w-full bg-gray-900 overflow-y-auto pt-10 pb-20 px-4">
-    
+
     <h1 class="text-5xl font-black text-emerald-400 mb-12 uppercase tracking-widest animate-bounce mt-4">
       {{ contestant.name }}
     </h1>
@@ -98,8 +100,8 @@ defineExpose({ cycleWinnerImage })
     </div>
 
     <div class="w-full max-w-2xl bg-gray-800/95 border border-gray-700 p-6 rounded-xl shadow-xl backdrop-blur-sm mb-8">
-      <h2 class="text-emerald-400 font-bold text-xl uppercase tracking-widest mb-4 text-center">Końcowy Ranking</h2>
-      
+      <h2 class="text-emerald-400 font-bold text-xl uppercase tracking-widest mb-4 text-center">{{ $t('winnerSummary.finalRanking') }}</h2>
+
       <div class="flex flex-col gap-2">
         <router-link 
           v-for="(cont, index) in points" 
@@ -112,17 +114,17 @@ defineExpose({ cycleWinnerImage })
           <span class="text-gray-400 text-sm ml-4">{{ cont.group }}</span>
         </router-link>
       </div>
-      
+
     </div>
 
     <div class="flex flex-col items-center gap-4 mt-4">
-      
+
       <template v-if="!isSuccess">
         <input 
           v-model="playerName"
           @keyup.enter="handleSubmitResults"
           type="text" 
-          placeholder="Wpisz się" 
+          :placeholder="$t('winnerSummary.enterName')" 
           class="w-full max-w-xs px-6 py-3 bg-gray-800 border-2 border-gray-700 focus:border-emerald-500 rounded-full text-white outline-none text-center transition-colors font-semibold tracking-wider placeholder-gray-500 shadow-inner"
         />
 
@@ -135,28 +137,28 @@ defineExpose({ cycleWinnerImage })
           >
             <svg v-if="!isSubmitting" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
             <svg v-else class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            {{ isSubmitting ? 'Wysyłanie...' : 'Wyślij Wynik' }}
+            {{ isSubmitting ? $t('winnerSummary.submitting') : $t('winnerSummary.submitResult') }}
           </button>
-          
+
           <button
             @click="handleGoHome"
             class="px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full transition-colors uppercase tracking-widest text-sm shadow-lg"
           >
-            Wróć do turnieju
+            {{ $t('winnerSummary.backToTournament') }}
           </button>
         </div>
       </template>
 
       <template v-else>
         <div class="bg-emerald-900/50 border border-emerald-500 text-emerald-400 px-8 py-4 rounded-xl flex flex-col items-center gap-3">
-          <span class="font-bold tracking-widest uppercase">Sukces!</span>
-          <span class="text-sm text-center">Wynik został wysłany. Po akceptacji trafi do rankingu</span>
+          <span class="font-bold tracking-widest uppercase">{{ $t('winnerSummary.successTitle') }}</span>
+          <span class="text-sm text-center">{{ $t('winnerSummary.successMessage') }}</span>
         </div>
         <button
             @click="handleGoHome"
             class="mt-4 px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full transition-colors uppercase tracking-widest text-sm shadow-lg"
           >
-            Wróć do strony głównej
+            {{ $t('winnerSummary.backToHome') }}
         </button>
       </template>
 

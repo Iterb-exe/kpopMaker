@@ -1,0 +1,100 @@
+{
+  "app": {
+    "title": "K-pop Maker",
+    "welcome": "Witaj w K-pop Maker"
+  },
+  "nav": {
+    "home": "Strona główna",
+    "ranking": "Ranking"
+  },
+  "tournament": {
+    "winner": "Zwycięzca!",
+    "matchLabel": "Mecz {current} / {total}",
+    "globalRanking": "Ranking Globalny",
+    "stages": {
+      "final": "Finał",
+      "semiFinal": "Półfinał",
+      "quarterFinal": "Ćwierćfinał",
+      "elimination": "Eliminacje"
+    },
+    "round": "1/{value}",
+    "select": "Wybierz",
+    "vs": "VS",
+    "waiting": "Czekaj pls",
+    "rankingLink": "Ranking",
+    "fetchError": "Nie udało się załadować danych turnieju"
+  },
+  "profileCard": {
+    "instagram": "@ Instagram"
+  },
+  "admin": {
+    "backHome": "Wróć na stronę główną",
+    "requiredAuthorization": "Wymagana Autoryzacja",
+    "loginError": "Błędne hasło! Spróbuj ponownie.",
+    "passwordPlaceholder": "Hasło administratora...",
+    "loading": "Ładowanie...",
+    "login": "Zaloguj się",
+    "panelTitle": "Panel Administracyjny",
+    "logout": "Wyloguj się",
+    "pendingTitle": "Oczekujące na decyzję ({count})",
+    "noPendingResults": "Brak wyników do sprawdzenia!",
+    "player": "Gracz",
+    "date": "Data",
+    "actions": "Akcje",
+    "approvedHistory": "Zatwierdzona historia gry ({count})",
+    "confirmApprove": "Zatwierdzić ten wynik do globalnego rankingu?",
+    "confirmDelete": "UWAGA! Usunąć trwale ten turniej?",
+    "sessionExpired": "Sesja wygasła. Zaloguj się ponownie.",
+    "serverError": "Błąd serwera",
+    "unauthorizedAccess": "Nieautoryzowany dostęp",
+    "fetchError": "Błąd pobierania turniejów"
+  },
+  "tournamentRow": {
+    "accept": "Akceptuj",
+    "delete": "Usuń",
+    "points": "{points} pkt"
+  },
+  "winnerSummary": {
+    "finalRanking": "Końcowy Ranking",
+    "enterName": "Wpisz się",
+    "submitResult": "Wyślij Wynik",
+    "submitting": "Wysyłanie...",
+    "backToTournament": "Wróć do turnieju",
+    "backToHome": "Wróć do strony głównej",
+    "successTitle": "Sukces!",
+    "successMessage": "Wynik został wysłany. Po akceptacji trafi do rankingu",
+    "networkError": "Błąd sieci",
+    "saveFailed": "Nie udało się zapisać wyniku",
+    "saveError": "Wystąpił błąd podczas zapisywania w bazie danych."
+  },
+  "groupProfile": {
+    "loading": "Ładowanie grupy...",
+    "members": "Członkowie zespołu ({count})",
+    "back": "Wróć",
+    "notFound": "Nie znaleziono takiej grupy!",
+    "fetchError": "Nie udało się załadować danych grupy"
+  },
+  "idolProfile": {
+    "loading": "Ładowanie profilu...",
+    "back": "Wróć",
+    "notFound": "Nie znaleziono takiej idolki!",
+    "fetchError": "Nie udało się załadować danych idolki"
+  },
+  "ranking": {
+    "backToGame": "Wróć do gry",
+    "title": "Globalny Ranking",
+    "description": "Zsumowane punkty ze wszystkich rozegranych i zatwierdzonych turniejów.",
+    "loading": "Ładowanie wyników z bazy danych...",
+    "pointsLabel": "PKT",
+    "fetchError": "Nie udało się załadować rankingu",
+    "refreshFailed": "Nie udało się odświeżyć rankingu"
+  },
+  "errors": {
+    "default": "Coś poszło nie tak",
+    "AUTH_FAILED": "Nieudane uwierzytelnienie",
+    "INVALID_DATA": "Wprowadzono nieprawidłowe dane",
+    "DB_ERROR": "Błąd bazy danych",
+    "SERVER_ERROR": "Błąd serwera",
+    "NOT_FOUND": "Nie znaleziono"
+  }
+}

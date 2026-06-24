@@ -14,6 +14,21 @@ app.use(cors());
 app.use(express.json());
 
 const prisma = new PrismaClient();
+
+const ERROR_CODES = Object.freeze({
+  AUTH_FAILED: 'AUTH_FAILED',
+  INVALID_DATA: 'INVALID_DATA',
+  DB_ERROR: 'DB_ERROR',
+  SERVER_ERROR: 'SERVER_ERROR',
+  NOT_FOUND: 'NOT_FOUND'
+});
+
+const sendError = (res, statusCode, errorCode, details = null) => {
+  const payload = { errorCode };
+  if (details !== null) payload.details = details;
+  return res.status(statusCode).json(payload);
+};
+
 async function seedDatabase() {
     try {
         const idolCount = await prisma.idol.count();
@@ -76,18 +91,18 @@ const requireAdmin = async (req, res, next) => {
         const clientPassword = req.headers['x-admin-password'];
         const hash = process.env.ADMIN_PASSWORD_HASH;
         if (!clientPassword || !hash) {
-            return res.status(401).json({ error: 'Odmowa dostępu lub błąd konfiguracji serwera.' });
+            return sendError(res, 401, ERROR_CODES.AUTH_FAILED);
         }
         const isValid = await bcrypt.compare(clientPassword, hash);
 
         if (isValid) {
             next();
         } else {
-            return res.status(401).json({ error: 'Odmowa dostępu. Nieprawidłowe hasło.' });
+            return sendError(res, 401, ERROR_CODES.AUTH_FAILED);
         }
     } catch (error) {
         console.error("Błąd podczas autoryzacji:", error);
-        return res.status(500).json({ error: 'Wewnętrzny błąd serwera.' });
+        return sendError(res, 500, ERROR_CODES.SERVER_ERROR);
     }
 };
 const tournamentSchema = z.object({
@@ -105,7 +120,7 @@ app.get('/api/contestants', async (req, res) => {
         return res.json(idols);
     } catch (error) {
         console.error("Błąd podczas pobierania z bazy:", error);
-        return res.status(500).json({ error: "Błąd połączenia z bazą danych!" });
+        return sendError(res, 500, ERROR_CODES.DB_ERROR);
     }
 });
 
@@ -125,34 +140,31 @@ app.post('/api/tournaments', async (req, res) => {
         });
 
         return res.status(201).json({ message: "Wynik zapisany!", tournament: newTournament });
-        
+
     } catch (error) {
         if (error instanceof z.ZodError) {
             console.warn("Odrzucono niepoprawne dane:", error.errors);
-            return res.status(400).json({ 
-                error: "Niepoprawne dane wejściowe", 
-                details: error.errors 
-            });
+            return sendError(res, 400, ERROR_CODES.INVALID_DATA, error.errors);
         }
         console.error("Błąd podczas zapisywania turnieju:", error);
-        return res.status(500).json({ error: "Nie udało się zapisać wyników." });
+        return sendError(res, 500, ERROR_CODES.SERVER_ERROR);
     }
 });
-app.get('/api/tournaments', requireAdmin ,async (req, res) => {
+app.get('/api/tournaments', requireAdmin, async (req, res) => {
     try {
         const tournaments = await prisma.tournament.findMany({
             orderBy: { createdAt: 'desc' },
             include: {
                 scores: {
-                    orderBy: { points: 'desc' }, 
-                    include: { idol: true } 
+                    orderBy: { points: 'desc' },
+                    include: { idol: true }
                 }
             }
         });
         return res.json(tournaments);
     } catch (error) {
         console.error("Błąd podczas pobierania turniejów:", error);
-        return res.status(500).json({ error: "Błąd serwera podczas pobierania turniejów." });
+        return sendError(res, 500, ERROR_CODES.DB_ERROR);
     }
 });
 app.get('/api/ranking', async (req, res) => {
@@ -178,18 +190,21 @@ app.get('/api/ranking', async (req, res) => {
             };
         });
         ranking.sort((a, b) => b.totalPoints - a.totalPoints);
-        
+
         return res.json(ranking);
-        
+
     } catch (error) {
         console.error("Błąd podczas generowania rankingu:", error);
-        return res.status(500).json({ error: "Błąd serwera podczas pobierania rankingu." });
+        return sendError(res, 500, ERROR_CODES.DB_ERROR);
     }
 });
 
-app.put('/api/tournaments/:id/approve', requireAdmin,async (req, res) => {
+app.put('/api/tournaments/:id/approve', requireAdmin, async (req, res) => {
     try {
-        const tournamentId = parseInt(req.params.id);
+        const tournamentId = Number.parseInt(req.params.id, 10);
+        if (!Number.isInteger(tournamentId)) {
+            return sendError(res, 400, ERROR_CODES.INVALID_DATA, { field: 'id' });
+        }
 
         const updatedTournament = await prisma.tournament.update({
             where: { id: tournamentId },
@@ -199,13 +214,17 @@ app.put('/api/tournaments/:id/approve', requireAdmin,async (req, res) => {
         return res.json({ message: "Turniej zatwierdzony!", tournament: updatedTournament });
     } catch (error) {
         console.error("Błąd podczas akceptacji turnieju:", error);
-        return res.status(500).json({ error: "Nie udało się zaktualizować statusu." });
+        return sendError(res, 500, ERROR_CODES.DB_ERROR);
     }
 });
 
-app.delete('/api/tournaments/:id', requireAdmin,async (req, res) => {
+app.delete('/api/tournaments/:id', requireAdmin, async (req, res) => {
     try {
-        const tournamentId = parseInt(req.params.id);
+        const tournamentId = Number.parseInt(req.params.id, 10);
+        if (!Number.isInteger(tournamentId)) {
+            return sendError(res, 400, ERROR_CODES.INVALID_DATA, { field: 'id' });
+        }
+
         await prisma.score.deleteMany({
             where: { tournamentId: tournamentId }
         });
@@ -216,7 +235,7 @@ app.delete('/api/tournaments/:id', requireAdmin,async (req, res) => {
         return res.json({ message: "Turniej i jego wyniki zostały trwale usunięte." });
     } catch (error) {
         console.error("Błąd podczas usuwania turnieju:", error);
-        return res.status(500).json({ error: "Nie udało się usunąć turnieju." });
+        return sendError(res, 500, ERROR_CODES.DB_ERROR);
     }
 });
 
