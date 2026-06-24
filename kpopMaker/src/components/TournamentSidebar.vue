@@ -46,7 +46,13 @@ const getRank = (index) => {
       <ul v-if="stageName !== 'Zwycięzca!' && groupStats.length > 0" class="flex flex-col gap-3">
         <li v-for="stat in groupStats" :key="stat.group" class="flex flex-col">
           <div class="flex justify-between items-end mb-1">
-            <span class="text-gray-200 font-semibold text-sm truncate pr-2">{{ stat.group }}</span>
+            <router-link 
+              :to="`/group/${stat.group.toLowerCase()}`"
+              class="text-gray-200 font-semibold text-sm truncate pr-2 hover:text-emerald-400 transition-colors cursor-pointer group-hover:underline"
+            >
+              {{ stat.group }}
+            </router-link>
+            
             <span class="text-xs text-gray-400 font-mono whitespace-nowrap">
               {{ stat.current }}/{{ stat.total }} ({{ stat.percentage }}%)
             </span>
