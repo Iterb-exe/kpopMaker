@@ -1,16 +1,10 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import ProfileCard from './ProfileCard.vue'
 
 const props = defineProps({
-  contestant: {
-    type: Object,
-    required: true
-  },
-  points: {
-    type: Array,
-    required: true
-  }
+  contestant: { type: Object, required: true },
+  points: { type: Array, required: true }
 })
 
 const emit = defineEmits(['go-home'])
@@ -39,28 +33,19 @@ const cycleWinnerImage = () => {
 
 const handleSubmitResults = async () => {
   if (!playerName.value.trim() || isSubmitting.value) return
-  
   isSubmitting.value = true
-
-  const scoresPayload = props.points.map((cont, index) => {
-    return {
-      idolId: cont.id,
-      points: calculatePoints(index)
-    }
-  })
+  const scoresPayload = props.points.map((cont, index) => ({
+    idolId: cont.id,
+    points: calculatePoints(index)
+  }))
 
   try {
     const response = await fetch('/api/tournaments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        playerName: playerName.value.trim(),
-        scores: scoresPayload
-      })
+      body: JSON.stringify({ playerName: playerName.value.trim(), scores: scoresPayload })
     })
-
     if (!response.ok) throw new Error("Błąd sieci")
-    
     isSuccess.value = true
   } catch (error) {
     console.error("Nie udało się zapisać wyniku:", error)
@@ -73,6 +58,27 @@ const handleSubmitResults = async () => {
 const handleGoHome = () => {
   emit('go-home')
 }
+const handleEnter = () => {
+  if (isSuccess.value) {
+    handleGoHome() 
+  } else if (playerName.value.trim() && !isSubmitting.value) {
+    handleSubmitResults() 
+  }
+}
+const handleKeydown = (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    handleEnter()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 defineExpose({ cycleWinnerImage })
 </script>
 
@@ -93,13 +99,20 @@ defineExpose({ cycleWinnerImage })
 
     <div class="w-full max-w-2xl bg-gray-800/95 border border-gray-700 p-6 rounded-xl shadow-xl backdrop-blur-sm mb-8">
       <h2 class="text-emerald-400 font-bold text-xl uppercase tracking-widest mb-4 text-center">Końcowy Ranking</h2>
-      <ul class="flex flex-col gap-2">
-        <li v-for="(cont, index) in points" :key="cont.name" class="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
-          <span class="text-emerald-500 font-bold text-lg mr-4 w-12">#{{ getRank(index) }}</span>
-          <span class="text-gray-200 font-semibold flex-1">{{ cont.name }}</span>
+      
+      <div class="flex flex-col gap-2">
+        <router-link 
+          v-for="(cont, index) in points" 
+          :key="cont.name" 
+          :to="`/${cont.name.toLowerCase()}`"
+          class="flex items-center justify-between p-3 bg-gray-700/50 hover:bg-gray-700/90 rounded-lg transition-all cursor-pointer group border border-transparent hover:border-gray-600 shadow-sm"
+        >
+          <span class="text-emerald-500 font-bold text-lg mr-4 w-12 group-hover:scale-110 transition-transform">#{{ getRank(index) }}</span>
+          <span class="text-gray-200 font-semibold flex-1 group-hover:text-emerald-400 transition-colors">{{ cont.name }}</span>
           <span class="text-gray-400 text-sm ml-4">{{ cont.group }}</span>
-        </li>
-      </ul>
+        </router-link>
+      </div>
+      
     </div>
 
     <div class="flex flex-col items-center gap-4 mt-4">
@@ -107,6 +120,7 @@ defineExpose({ cycleWinnerImage })
       <template v-if="!isSuccess">
         <input 
           v-model="playerName"
+          @keyup.enter="handleSubmitResults"
           type="text" 
           placeholder="Wpisz się" 
           class="w-full max-w-xs px-6 py-3 bg-gray-800 border-2 border-gray-700 focus:border-emerald-500 rounded-full text-white outline-none text-center transition-colors font-semibold tracking-wider placeholder-gray-500 shadow-inner"
